@@ -4,7 +4,5 @@
 #include "structs.h"
 
 inline App app;
-inline Entity player;
-inline Entity ball;
 
 #endif //COMMON_H
