@@ -9,6 +9,7 @@
 int main(int argc, char *argv[]) {
     memset(&app, 0, sizeof(App));
     memset(&player, 0, sizeof(Entity));
+    memset(&ball, 0, sizeof(Entity));
 
     initSDL();
 
@@ -19,10 +20,15 @@ int main(int argc, char *argv[]) {
     player.y = SCREEN_HEIGHT - 200;
     player.texture = loadTexture(messi);
 
+    ball.texture = loadTexture("../gfx/ball.png");
+
     while (true) {
         prepareScene();
 
         doInput();
+
+        player.x += player.dx;
+        player.y += player.dy;
 
         if (app.up) {
             player.y -= 4;
@@ -40,7 +46,27 @@ int main(int argc, char *argv[]) {
             player.x += 4;
         }
 
+        if (app.fire && ball.health == 0) {
+            ball.x = player.x;
+            ball.y = player.y;
+            ball.dx = 16;
+            ball.dy = 0;
+            ball.health = 1;
+        }
+
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        if (ball.x > SCREEN_WIDTH) {
+            ball.health = 0;
+        }
+
         blit(player.texture, player.x, player.y);
+
+        if (ball.health > 0) {
+            blit(ball.texture, ball.x, ball.y);
+        }
+
         presentScene();
 
         SDL_Delay(16);
