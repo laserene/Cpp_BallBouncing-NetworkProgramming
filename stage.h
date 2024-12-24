@@ -1,6 +1,8 @@
 #ifndef STAGE_H
 #define STAGE_H
 
+#include "structs.h"
+
 void initStage();
 static void initPlayer();
 
@@ -10,6 +12,7 @@ static void fireBullet();
 static void doFighters();
 static void doBullets();
 static void spawnEnemies();
+static int bulletHitFighter(Entity *b);
 
 static void draw();
 static void drawPlayer();

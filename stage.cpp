@@ -1,6 +1,7 @@
 #include "stage.h"
 #include "common.h"
 #include "draw.h"
+#include "util.h"
 #include "defs.h"
 
 Entity *player;
@@ -30,6 +31,7 @@ static void initPlayer() {
     memset(player, 0, sizeof(Entity));
     stage.fighterTail->next = player;
     stage.fighterTail = player;
+    player->side = SIDE_PLAYER;
 
     player->x = 100;
     player->y = 100;
@@ -52,7 +54,7 @@ static void doFighters() {
         e->x += e->dx;
         e->y += e->dy;
 
-        if (e != player && e->x < -e->w) {
+        if (e != player && (e->x < -e->w || e->health == 0)) {
             if (e == stage.fighterTail) {
                 stage.fighterTail = prev;
             }
@@ -72,11 +74,13 @@ static void spawnEnemies() {
         memset(enemy, 0, sizeof(Entity));
         stage.fighterTail->next = enemy;
         stage.fighterTail = enemy;
+        enemy->side = SIDE_ALIEN;
 
+        enemy->health = 1;
         enemy->x = SCREEN_WIDTH;
         enemy->y = rand() % SCREEN_HEIGHT;
         enemy->texture = enemyTexture;
-        SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+        SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
 
         enemy->dx = -(2 + (rand() % 4));
 
@@ -120,13 +124,14 @@ static void fireBullet() {
     memset(ball, 0, sizeof(Entity));
     stage.ballTail->next = ball;
     stage.ballTail = ball;
+    ball->side = SIDE_PLAYER;
 
     ball->x = player->x;
     ball->y = player->y;
     ball->dx = PLAYER_BULLET_SPEED;
     ball->health = 1;
     ball->texture = ballTexture;
-    SDL_QueryTexture(ball->texture, NULL, NULL, &ball->w, &ball->h);
+    SDL_QueryTexture(ball->texture, nullptr, nullptr, &ball->w, &ball->h);
 
     ball->y += (player->h / 2) - (ball->h / 2);
 
@@ -136,11 +141,11 @@ static void fireBullet() {
 static void doBullets() {
     Entity *prev = &stage.ballHead;
 
-    for (Entity *b = stage.ballHead.next; b != NULL; b = b->next) {
+    for (Entity *b = stage.ballHead.next; b != nullptr; b = b->next) {
         b->x += b->dx;
         b->y += b->dy;
 
-        if (b->x > SCREEN_WIDTH) {
+        if (bulletHitFighter(b) || b->x > SCREEN_WIDTH) {
             if (b == stage.ballTail) {
                 stage.ballTail = prev;
             }
@@ -152,6 +157,19 @@ static void doBullets() {
 
         prev = b;
     }
+}
+
+static int bulletHitFighter(Entity *b) {
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        if (e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h)) {
+            b->health = 0;
+            e->health = 0;
+
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 static void draw() {
