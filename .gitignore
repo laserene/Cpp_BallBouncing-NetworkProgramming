@@ -1,0 +1,5 @@
+.idea/
+cmake-build-debug/
+gfx/
+fonts/
+CMakeLists.txt
