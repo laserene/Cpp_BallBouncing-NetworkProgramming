@@ -1,5 +1,6 @@
 #include "SDL2/SDL_ttf.h"
 #include "common.h"
+#include "defs.h"
 #include "draw.h"
 #include "init.h"
 #include "input.h"
@@ -13,8 +14,9 @@ int main(int argc, char *argv[]) {
 
     char *messi = "../gfx/messi.png";
 
-    player.x = 100;
-    player.y = 100;
+    // Init player at middle bottom
+    player.x = SCREEN_WIDTH / 2;
+    player.y = SCREEN_HEIGHT - 200;
     player.texture = loadTexture(messi);
 
     while (true) {
