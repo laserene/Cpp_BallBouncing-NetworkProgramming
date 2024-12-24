@@ -34,13 +34,10 @@ int main(int argc, char *argv[]) {
 }
 
 static void capFrameRate(long *then, float *remainder) {
-    long wait, frameTime;
+    long wait = 16 + *remainder;
+    *remainder -= static_cast<int>(*remainder);
 
-    wait = 16 + *remainder;
-
-    *remainder -= (int) *remainder;
-
-    frameTime = SDL_GetTicks() - *then;
+    const long frameTime = SDL_GetTicks() - *then;
 
     wait -= frameTime;
 

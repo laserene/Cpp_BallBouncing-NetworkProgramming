@@ -3,6 +3,7 @@
 
 void initStage();
 static void initPlayer();
+
 static void logic();
 static void doPlayer();
 static void fireBullet();
