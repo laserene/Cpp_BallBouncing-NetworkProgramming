@@ -3,9 +3,11 @@
 #include "draw.h"
 #include "defs.h"
 
-Entity * player;
+Entity *player;
 SDL_Texture *ballTexture;
+SDL_Texture *enemyTexture;
 inline Stage stage;
+int enemySpawnTimer;
 
 void initStage() {
     app.delegate.logic = logic;
@@ -18,6 +20,9 @@ void initStage() {
     initPlayer();
 
     ballTexture = loadTexture(BALL_PATH);
+    enemyTexture = loadTexture(ENEMY_PATH);
+
+    enemySpawnTimer = 0;
 }
 
 static void initPlayer() {
@@ -35,7 +40,48 @@ static void initPlayer() {
 
 static void logic() {
     doPlayer();
+    doFighters();
     doBullets();
+    spawnEnemies();
+}
+
+static void doFighters() {
+    Entity *prev = &stage.fighterHead;
+
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        e->x += e->dx;
+        e->y += e->dy;
+
+        if (e != player && e->x < -e->w) {
+            if (e == stage.fighterTail) {
+                stage.fighterTail = prev;
+            }
+
+            prev->next = e->next;
+            free(e);
+            e = prev;
+        }
+
+        prev = e;
+    }
+}
+
+static void spawnEnemies() {
+    if (--enemySpawnTimer <= 0) {
+        auto *enemy = static_cast<Entity *>(malloc(sizeof(Entity)));
+        memset(enemy, 0, sizeof(Entity));
+        stage.fighterTail->next = enemy;
+        stage.fighterTail = enemy;
+
+        enemy->x = SCREEN_WIDTH;
+        enemy->y = rand() % SCREEN_HEIGHT;
+        enemy->texture = enemyTexture;
+        SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+
+        enemy->dx = -(2 + (rand() % 4));
+
+        enemySpawnTimer = 30 + (rand() % 60);
+    }
 }
 
 static void doPlayer() {
@@ -111,6 +157,7 @@ static void doBullets() {
 static void draw() {
     drawPlayer();
     drawBullets();
+    drawFighters();
 }
 
 static void drawPlayer() {
@@ -120,5 +167,11 @@ static void drawPlayer() {
 static void drawBullets() {
     for (const Entity *b = stage.ballHead.next; b != nullptr; b = b->next) {
         blit(b->texture, b->x, b->y);
+    }
+}
+
+static void drawFighters() {
+    for (const Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        blit(e->texture, e->x, e->y);
     }
 }

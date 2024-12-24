@@ -1,9 +1,9 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#define FONT_PATH "../fonts/roboto-serif.ttf"
-#define MESSI_PATH "../gfx/messi.png"
-#define BALL_PATH "../gfx/ball.png"
+#define MESSI_PATH "../gfx/clothier.png"
+#define BALL_PATH "../gfx/abigail.png"
+#define ENEMY_PATH "../gfx/enemy.png"
 
 #define SCREEN_WIDTH    1308
 #define SCREEN_HEIGHT   552
