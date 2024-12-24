@@ -25,7 +25,7 @@ void doInput() {
     }
 }
 
-static void doKeyDown(SDL_KeyboardEvent *event) {
+static void doKeyDown(const SDL_KeyboardEvent *event) {
     if (event->repeat == 0) {
         if (event->keysym.scancode == SDL_SCANCODE_UP) {
             app.up = 1;
@@ -42,10 +42,14 @@ static void doKeyDown(SDL_KeyboardEvent *event) {
         if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
             app.right = 1;
         }
+
+        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
+            app.fire = 1;
+        }
     }
 }
 
-static void doKeyUp(SDL_KeyboardEvent *event) {
+static void doKeyUp(const SDL_KeyboardEvent *event) {
     if (event->repeat == 0) {
         if (event->keysym.scancode == SDL_SCANCODE_UP) {
             app.up = 0;
@@ -61,6 +65,10 @@ static void doKeyUp(SDL_KeyboardEvent *event) {
 
         if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
             app.right = 0;
+        }
+
+        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
+            app.fire = 0;
         }
     }
 }

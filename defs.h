@@ -3,7 +3,7 @@
 
 #define FONT_PATH "../fonts/roboto-serif.ttf"
 
-#define SCREEN_WIDTH    600
-#define SCREEN_HEIGHT   800
+#define SCREEN_WIDTH    1308
+#define SCREEN_HEIGHT   552
 
 #endif //DEFS_H
