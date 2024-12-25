@@ -17,10 +17,21 @@ static int bulletHitFighter(Entity *b);
 static void doEnemies();
 static void fireAlienBullet(Entity *e);
 static void clipPlayer();
+static void initStarfield();
+static void doBackground();
+static void doStarfield();
+static void doExplosions();
+static void doDebris();
+static void addExplosions(int x, int y, int num);
+static void addDebris(Entity *e);
 
 static void draw();
+static void drawBackground();
+static void drawStarfield();
 static void drawPlayer();
 static void drawBullets();
 static void drawFighters();
+static void drawDebris();
+static void drawExplosions();
 
 #endif //STAGE_H

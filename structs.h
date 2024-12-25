@@ -4,6 +4,26 @@
 #include "SDL2/SDL.h"
 #include "defs.h"
 
+struct Explosion {
+    float x;
+    float y;
+    float dx;
+    float dy;
+    int r, g, b, a;
+    Explosion *next;
+};
+
+struct Debris {
+    float x;
+    float y;
+    float dx;
+    float dy;
+    SDL_Rect rect;
+    SDL_Texture *texture;
+    int life;
+    Debris *next;
+};
+
 typedef struct {
     void (*logic)();
 
@@ -34,6 +54,14 @@ struct Entity {
 typedef struct {
     Entity fighterHead, *fighterTail;
     Entity ballHead, *ballTail;
+    Explosion explosionHead, *explosionTail;
+    Debris debrisHead, *debrisTail;
 } Stage;
+
+typedef struct {
+    int x;
+    int y;
+    int speed;
+} Star;
 
 #endif //STRUCTS_H
