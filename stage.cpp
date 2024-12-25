@@ -1,3 +1,4 @@
+#include "cstdlib"
 #include "stage.h"
 #include "common.h"
 #include "draw.h"
@@ -12,6 +13,7 @@ SDL_Texture *ballTexture;
 SDL_Texture *enemyTexture;
 SDL_Texture *background;
 SDL_Texture *explosionTexture;
+SDL_Texture *pointsTexture;
 inline Stage stage;
 int enemySpawnTimer;
 int stageResetTimer;
@@ -28,6 +30,7 @@ void initStage() {
     stage.ballTail = &stage.ballHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
+    stage.pointsTail = &stage.pointsHead;
 
     initPlayer();
 
@@ -37,6 +40,11 @@ void initStage() {
     playerTexture = loadTexture("../gfx/clothier.png");
     background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
+
+    const int buff_id = rand() % 8 + 1;
+    char result[20];
+    snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
+    pointsTexture = loadTexture(result);
 
     resetStage();
 }
@@ -83,11 +91,18 @@ static void resetStage() {
         free(d);
     }
 
+    while (stage.pointsHead.next) {
+        e = stage.pointsHead.next;
+        stage.pointsHead.next = e->next;
+        free(e);
+    }
+
     memset(&stage, 0, sizeof(Stage));
     stage.fighterTail = &stage.fighterHead;
     stage.ballTail = &stage.ballHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
+    stage.pointsTail = &stage.pointsHead;
 
     initPlayer();
     initStarfield();
@@ -122,6 +137,7 @@ static void logic() {
 
     doExplosions();
     doDebris();
+    doPointsPods();
 }
 
 static void doBackground() {
@@ -336,6 +352,7 @@ static int bulletHitFighter(Entity *b) {
             if (e->health == 0) {
                 addExplosions(e->x, e->y, 1);
                 addDebris(e);
+                addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
             }
 
             stage.score++;
@@ -447,9 +464,83 @@ static void addDebris(Entity *e) {
     }
 }
 
+static void doPointsPods() {
+    Entity *prev = &stage.pointsHead;
+
+    for (Entity *e = stage.pointsHead.next; e != nullptr; e = e->next) {
+        if (e->x < 0) {
+            e->x = 0;
+            e->dx = -e->dx;
+        }
+
+        if (e->x + e->w > SCREEN_WIDTH) {
+            e->x = SCREEN_WIDTH - e->w;
+            e->dx = -e->dx;
+        }
+
+        if (e->y < 0) {
+            e->y = 0;
+            e->dy = -e->dy;
+        }
+
+        if (e->y + e->h > SCREEN_HEIGHT) {
+            e->y = SCREEN_HEIGHT - e->h;
+            e->dy = -e->dy;
+        }
+
+        e->x += e->dx;
+        e->y += e->dy;
+
+        if (player != nullptr && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h)) {
+            e->health = 0;
+
+            stage.score++;
+
+            highscore = MAX(stage.score, highscore);
+        }
+
+        if (--e->health <= 0) {
+            if (e == stage.pointsTail) {
+                stage.pointsTail = prev;
+            }
+
+            prev->next = e->next;
+            free(e);
+            e = prev;
+        }
+
+        prev = e;
+    }
+}
+
+static void addPointsPod(int x, int y) {
+    auto *e = static_cast<Entity *>(malloc(sizeof(Entity)));
+    memset(e, 0, sizeof(Entity));
+    stage.pointsTail->next = e;
+    stage.pointsTail = e;
+
+    e->x = x;
+    e->y = y;
+    e->dx = -(rand() % 5);
+    e->dy = (rand() % 5) - (rand() % 5);
+    e->health = FPS * 10;
+
+    const int buff_id = rand() % 8 + 1;
+    char result[20];
+    snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
+
+    e->texture = loadTexture(result);
+
+    SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
+
+    e->x -= e->w / 2;
+    e->y -= e->h / 2;
+}
+
 static void draw() {
     drawBackground();
     drawStarfield();
+    drawPointsPods();
 
     drawPlayer();
     drawBullets();
@@ -480,6 +571,12 @@ static void drawStarfield() {
 
         SDL_SetRenderDrawColor(app.renderer, c, c, c, 255);
         SDL_RenderDrawLine(app.renderer, stars[i].x, stars[i].y, stars[i].x + 3, stars[i].y);
+    }
+}
+
+static void drawPointsPods() {
+    for (const Entity *e = stage.pointsHead.next; e != nullptr; e = e->next) {
+        blit(e->texture, e->x, e->y);
     }
 }
 

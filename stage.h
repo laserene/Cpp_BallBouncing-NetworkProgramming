@@ -24,10 +24,13 @@ static void doExplosions();
 static void doDebris();
 static void addExplosions(int x, int y, int num);
 static void addDebris(Entity *e);
+static void doPointsPods();
+static void addPointsPod(int x, int y);
 
 static void draw();
 static void drawBackground();
 static void drawStarfield();
+static void drawPointsPods();
 static void drawPlayer();
 static void drawBullets();
 static void drawFighters();
