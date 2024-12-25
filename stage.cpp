@@ -331,6 +331,11 @@ static int bulletHitFighter(Entity *b) {
             b->health = 0;
             e->health -= 1;
 
+            if (e->health == 0) {
+                addExplosions(e->x, e->y, 1);
+                addDebris(e);
+            }
+
             return 1;
         }
     }
