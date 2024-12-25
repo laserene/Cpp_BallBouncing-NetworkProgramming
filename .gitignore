@@ -2,4 +2,5 @@
 cmake-build-debug/
 gfx/
 fonts/
+map/
 CMakeLists.txt

@@ -5,6 +5,7 @@
 
 void initStage();
 static void initPlayer();
+static void resetStage();
 
 static void logic();
 static void doPlayer();
@@ -13,6 +14,9 @@ static void doFighters();
 static void doBullets();
 static void spawnEnemies();
 static int bulletHitFighter(Entity *b);
+static void doEnemies();
+static void fireAlienBullet(Entity *e);
+static void clipPlayer();
 
 static void draw();
 static void drawPlayer();
