@@ -2,6 +2,7 @@
 #include "common.h"
 #include "draw.h"
 #include "util.h"
+#include "text.h"
 #include "defs.h"
 
 Entity *player;
@@ -15,6 +16,7 @@ inline Stage stage;
 int enemySpawnTimer;
 int stageResetTimer;
 int backgroundX;
+int highscore = 0;
 Star stars[MAX_STARS];
 
 void initStage() {
@@ -91,7 +93,7 @@ static void resetStage() {
     initStarfield();
 
     enemySpawnTimer = 0;
-
+    stage.score = 0;
     stageResetTimer = FPS * 3;
 }
 
@@ -336,6 +338,9 @@ static int bulletHitFighter(Entity *b) {
                 addDebris(e);
             }
 
+            stage.score++;
+            highscore = MAX(stage.score, highscore);
+
             return 1;
         }
     }
@@ -452,6 +457,8 @@ static void draw() {
 
     drawDebris();
     drawExplosions();
+
+    drawHud();
 }
 
 static void drawBackground() {
@@ -494,7 +501,7 @@ static void drawFighters() {
     }
 }
 
-static void drawDebris(void) {
+static void drawDebris() {
     for (const Debris *d = stage.debrisHead.next; d != nullptr; d = d->next) {
         blitRect(d->texture, &d->rect, d->x, d->y);
     }
@@ -512,4 +519,14 @@ static void drawExplosions() {
     }
 
     SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
+}
+
+static void drawHud() {
+    drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+
+    if (stage.score > 0 && stage.score == highscore) {
+        drawText(960, 10, 0, 255, 0, "HIGH SCORE: %03d", highscore);
+    } else {
+        drawText(960, 10, 255, 255, 255, "HIGH SCORE: %03d", highscore);
+    }
 }

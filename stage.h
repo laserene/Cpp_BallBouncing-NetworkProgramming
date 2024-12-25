@@ -33,5 +33,6 @@ static void drawBullets();
 static void drawFighters();
 static void drawDebris();
 static void drawExplosions();
+static void drawHud();
 
 #endif //STAGE_H

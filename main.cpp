@@ -5,6 +5,7 @@
 #include "input.h"
 #include "structs.h"
 #include "stage.h"
+#include "text.h"
 
 static void capFrameRate(long *then, float *remainder);
 
@@ -13,6 +14,7 @@ int main(int argc, char *argv[]) {
 
     initSDL();
     initStage();
+    initFonts();
 
     long then = SDL_GetTicks();
     float remainder = 0;
