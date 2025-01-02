@@ -66,4 +66,13 @@ typedef struct {
     int speed;
 } Star;
 
+typedef struct {
+    int recent;
+    int score;
+} Highscore;
+
+typedef struct {
+    Highscore highscore[NUM_HIGHSCORES];
+} Highscores;
+
 #endif //STRUCTS_H

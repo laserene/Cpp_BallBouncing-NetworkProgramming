@@ -24,4 +24,6 @@
 
 #define MAX_LINE_LENGTH 1024
 
+#define NUM_HIGHSCORES 8
+
 #endif //DEFS_H
