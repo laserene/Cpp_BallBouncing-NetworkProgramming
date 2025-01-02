@@ -1,4 +1,5 @@
 #include "cstdlib"
+#include "helper.h"
 #include "stage.h"
 #include "common.h"
 #include "draw.h"
@@ -352,7 +353,8 @@ static int bulletHitFighter(Entity *b) {
             if (e->health == 0) {
                 addExplosions(e->x, e->y, 1);
                 addDebris(e);
-                addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+
+                if (getRandomNumber(1, 100) <= 33) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
             }
 
             stage.score++;
