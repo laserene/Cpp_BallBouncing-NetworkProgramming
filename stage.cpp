@@ -42,7 +42,7 @@ void initStage() {
     playerTexture = loadTexture("../gfx/clothier.png");
     background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
-    heartTexture = loadTexture("../buff/b9.png");
+    heartTexture = loadTexture("../buff/b5.png");
 
     const int buff_id = rand() % 8 + 1;
     char result[20];
