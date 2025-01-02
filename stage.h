@@ -26,6 +26,7 @@ static void addExplosions(int x, int y, int num);
 static void addDebris(Entity *e);
 static void doPointsPods();
 static void addPointsPod(int x, int y);
+static void consumeDebuff(int id);
 
 static void draw();
 static void drawBackground();
@@ -38,5 +39,6 @@ static void drawDebris();
 static void drawExplosions();
 static void drawHud();
 static void drawHeart(int x, int y);
+static void drawDebuff(int x, int y);
 
 #endif //STAGE_H

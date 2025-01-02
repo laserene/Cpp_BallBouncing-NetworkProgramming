@@ -17,13 +17,23 @@ SDL_Texture *background;
 SDL_Texture *explosionTexture;
 SDL_Texture *pointsTexture;
 SDL_Texture *heartTexture;
+
+// Debuff texture
+SDL_Texture *bleedingTexture;
+SDL_Texture *weakTexture;
+SDL_Texture *confusionTexture;
+SDL_Texture *darknessTexture;
+SDL_Texture *chilledTexture;
+
 inline Stage stage;
 int enemySpawnTimer;
 int stageResetTimer;
 int backgroundX;
 int highscore = 0;
+
 Star stars[MAX_STARS];
 
+// Init
 void initStage() {
     app.delegate.logic = logic;
     app.delegate.draw = draw;
@@ -44,6 +54,12 @@ void initStage() {
     background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
     heartTexture = loadTexture("../buff/b5.png");
+
+    bleedingTexture = loadTexture("../debuff/db1.png");
+    weakTexture = loadTexture("../debuff/db2.png");
+    confusionTexture = loadTexture("../debuff/db3.png");
+    darknessTexture = loadTexture("../debuff/db4.png");
+    chilledTexture = loadTexture("../debuff/db5.png");
 
     const int buff_id = rand() % 8 + 1;
     char result[20];
@@ -215,7 +231,7 @@ static void doFighters() {
             e->health = 0;
         }
 
-        if (e->health == 0) {
+        if (e->health <= 0) {
             if (e == player) {
                 player = nullptr;
             }
@@ -302,8 +318,8 @@ static void doPlayer() {
             fireBullet();
         }
 
-        player->x += player->dx;
-        player->y += player->dy;
+        player->x += player->dx + stage.player_delta_x;
+        player->y += player->dy + stage.player_delta_y;
     }
 }
 
@@ -317,7 +333,7 @@ static void fireBullet() {
     ball->x = player->x;
     ball->y = player->y;
     ball->dx = PLAYER_BULLET_SPEED;
-    ball->health = 1;
+    ball->health = 1 + stage.player_delta_bullet;
     ball->texture = ballTexture;
     SDL_QueryTexture(ball->texture, nullptr, nullptr, &ball->w, &ball->h);
 
@@ -350,14 +366,16 @@ static void doBullets() {
 static int bulletHitFighter(Entity *b) {
     for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
         if (e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h)) {
+            e->health -= b->health;
             b->health = 0;
-            e->health -= 1;
 
-            if (e->health == 0) {
+            if (e->health <= 0) {
                 addExplosions(e->x, e->y, 1);
                 addDebris(e);
 
-                addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                if (e->side == SIDE_ALIEN) {
+                    addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                }
             }
 
             if (b->side == SIDE_PLAYER) {
@@ -388,7 +406,7 @@ static void fireAlienBullet(Entity *e) {
 
     bullet->x = e->x;
     bullet->y = e->y;
-    bullet->health = 1;
+    bullet->health = 1 + stage.enemy_delta_bullet;
     bullet->texture = alienBulletTexture;
     bullet->side = SIDE_ALIEN;
     SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
@@ -501,7 +519,7 @@ static void doPointsPods() {
         if (player != nullptr && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h)) {
             e->health = 0;
 
-            // TODO: Add buff and debuff effect
+            // TODO: Add buff effect
 
             stage.score++;
 
@@ -540,10 +558,10 @@ static void addPointsPod(int x, int y) {
 
     e->health = FPS * 10;
 
-    char result[20];
     int id;
     if (getRandomNumber(1, 100) < BUFF_THRESHOLD) {
         id = rand() % NUM_BUFF + 1;
+        char result[20];
         snprintf(result, sizeof(result), "../buff/b%d.png", id);
         e->texture = loadTexture(result);
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
@@ -551,13 +569,56 @@ static void addPointsPod(int x, int y) {
         e->y -= e->h / 2;
     } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD) {
         // Debuffs are consumed instantly
-        id = rand() % NUM_DEBUFF + 1;
-        snprintf(result, sizeof(result), "../debuff/db%d.png", id);
-
-
+        id = rand() % NUM_DEBUFF;
+        consumeDebuff(id);
     }
 }
 
+static void consumeDebuff(const int id) {
+    int i;
+    for (i = 0; i < NUM_DEBUFF; i++) {
+        if (stage.debuffList[i].id == id + 1) {
+            return;
+        }
+
+        if (stage.debuffList[i].id == 0) {
+            stage.debuffList[i].id = id + 1;
+            stage.debuffList[i].time_to_live = 20 * FPS;
+            break;
+        }
+    }
+
+    // Handle out-of-range index
+    if (i == NUM_DEBUFF) i = NUM_DEBUFF - 1;
+
+    switch (stage.debuffList[i].id - 1) {
+        case BLEEDING:
+            stage.debuffList[i].texture = bleedingTexture;
+            stage.enemy_delta_bullet = 1;
+            break;
+        case WEAK:
+            stage.debuffList[i].texture = weakTexture;
+            stage.player_delta_bullet = -0.5;
+            break;
+        case CONFUSION:
+            stage.debuffList[i].texture = confusionTexture;
+            stage.player_delta_x = rand() % 10;
+            stage.player_delta_y = rand() % 10;
+            break;
+        case DARKNESS:
+            stage.debuffList[i].texture = darknessTexture;
+            break;
+        case CHILLED:
+            stage.debuffList[i].texture = chilledTexture;
+            stage.player_delta_x = -4;
+            stage.player_delta_y = -4;
+            break;
+        default:
+            break;
+    }
+}
+
+// Draw
 static void draw() {
     drawBackground();
     drawStarfield();
@@ -641,6 +702,7 @@ static void drawExplosions() {
 
 static void drawHud() {
     drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+    drawDebuff(200, 6);
     drawHeart(10, 40);
 
     if (stage.score > 0 && stage.score == highscore) {
@@ -652,9 +714,20 @@ static void drawHud() {
 
 static void drawHeart(const int x, const int y) {
     if (heartTexture != nullptr && player != nullptr) {
-        for (int  i = 0; i < player->health; i++) {
+        for (int i = 0; i < player->health; i++) {
             const int heartX = x + i * 20;
             blit(heartTexture, heartX, y);
+        }
+    }
+}
+
+static void drawDebuff(const int x, const int y) {
+    int count_debuff = 0;
+    for (int i = 0; i < NUM_DEBUFF; i++) {
+        if (stage.debuffList[i].id != -1) {
+            const int debuffX = x + count_debuff * 34;
+            count_debuff += 1;
+            blit(stage.debuffList[i].texture, debuffX, y);
         }
     }
 }

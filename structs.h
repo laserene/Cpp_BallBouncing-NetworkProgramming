@@ -6,7 +6,17 @@
 #include "buff.h"
 #include "debuff.h"
 
+struct Buff {
+    int id = -1;
+    int time_to_live = 10 * FPS;
+    SDL_Texture *texture;
+};
 
+struct Debuff {
+    int id = -1;
+    int time_to_live;
+    SDL_Texture *texture;
+};
 
 struct Explosion {
     float x;
@@ -48,7 +58,7 @@ struct Entity {
     int h;
     float dx;
     float dy;
-    int health;
+    float health;
     int reload;
     int side;
     int buff_type = 0;
@@ -62,7 +72,15 @@ typedef struct {
     Explosion explosionHead, *explosionTail;
     Debris debrisHead, *debrisTail;
     Entity pointsHead, *pointsTail;
+    Buff buffList[NUM_BUFF];
+    Debuff debuffList[NUM_DEBUFF];
     int score;
+
+    // Debuff effect
+    int enemy_delta_bullet = 0;
+    float player_delta_bullet = 0;
+    int player_delta_x = 0;
+    int player_delta_y = 0;
 } Stage;
 
 typedef struct {

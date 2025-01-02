@@ -9,7 +9,8 @@ enum {
     FREEZE,
     SPEEDUP,
     LUCK,
-    HEART
+    HEART,
+    REFRESH
 };
 
 #endif //BUFF_H
