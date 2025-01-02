@@ -354,7 +354,7 @@ static int bulletHitFighter(Entity *b) {
                 addExplosions(e->x, e->y, 1);
                 addDebris(e);
 
-                if (getRandomNumber(1, 100) <= 33) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                if (getRandomNumber(1, 100) <= 10) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
             }
 
             stage.score++;
@@ -527,13 +527,13 @@ static void addPointsPod(int x, int y) {
     e->dy = (rand() % 5) - (rand() % 5);
 
     if (e->dx == 0 || e->dy == 0) {
-        e->dx = 1;
+        e->dx = 2;
         e->dy = 1;
     }
 
     e->health = FPS * 10;
 
-    const int buff_id = rand() % 8 + 1;
+    const int buff_id = rand() % 9 + 1;
     char result[20];
     snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
 
