@@ -4,4 +4,5 @@ gfx/
 fonts/
 map/
 buff/
+debuff/
 CMakeLists.txt
