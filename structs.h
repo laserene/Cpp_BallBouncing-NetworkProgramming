@@ -3,6 +3,10 @@
 
 #include "SDL2/SDL.h"
 #include "defs.h"
+#include "buff.h"
+#include "debuff.h"
+
+
 
 struct Explosion {
     float x;
@@ -47,7 +51,7 @@ struct Entity {
     int health;
     int reload;
     int side;
-    int buff_type = -1;
+    int buff_type = 0;
     SDL_Texture *texture;
     Entity *next;
 };

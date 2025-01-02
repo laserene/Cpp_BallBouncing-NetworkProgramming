@@ -1,6 +1,7 @@
 #include "cstdlib"
 #include "helper.h"
 #include "stage.h"
+
 #include "common.h"
 #include "draw.h"
 #include "util.h"
@@ -356,7 +357,7 @@ static int bulletHitFighter(Entity *b) {
                 addExplosions(e->x, e->y, 1);
                 addDebris(e);
 
-                if (getRandomNumber(1, 100) <= 10) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
             }
 
             if (b->side == SIDE_PLAYER) {
@@ -500,6 +501,8 @@ static void doPointsPods() {
         if (player != nullptr && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h)) {
             e->health = 0;
 
+            // TODO: Add buff and debuff effect
+
             stage.score++;
 
             highscore = MAX(stage.score, highscore);
@@ -537,17 +540,22 @@ static void addPointsPod(int x, int y) {
 
     e->health = FPS * 10;
 
-    const int buff_id = rand() % 5 + 1;
     char result[20];
-    snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
+    int id;
+    if (getRandomNumber(1, 100) < BUFF_THRESHOLD) {
+        id = rand() % NUM_BUFF + 1;
+        snprintf(result, sizeof(result), "../buff/b%d.png", id);
+        e->texture = loadTexture(result);
+        SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
+        e->x -= e->w / 2;
+        e->y -= e->h / 2;
+    } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD) {
+        // Debuffs are consumed instantly
+        id = rand() % NUM_DEBUFF + 1;
+        snprintf(result, sizeof(result), "../debuff/db%d.png", id);
 
-    e->buff_type = buff_id;
-    e->texture = loadTexture(result);
 
-    SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
-
-    e->x -= e->w / 2;
-    e->y -= e->h / 2;
+    }
 }
 
 static void draw() {
