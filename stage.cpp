@@ -642,7 +642,7 @@ static void drawHud() {
 static void drawHeart(const int x, const int y) {
     if (heartTexture != nullptr && player != nullptr) {
         for (int  i = 0; i < player->health; i++) {
-            int heartX = x + i * 20;
+            const int heartX = x + i * 20;
             blit(heartTexture, heartX, y);
         }
     }
