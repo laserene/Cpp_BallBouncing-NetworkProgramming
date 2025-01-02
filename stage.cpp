@@ -359,8 +359,10 @@ static int bulletHitFighter(Entity *b) {
                 if (getRandomNumber(1, 100) <= 10) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
             }
 
-            stage.score++;
-            highscore = MAX(stage.score, highscore);
+            if (b->side == SIDE_PLAYER) {
+                stage.score++;
+                highscore = MAX(stage.score, highscore);
+            }
 
             return 1;
         }
@@ -535,7 +537,7 @@ static void addPointsPod(int x, int y) {
 
     e->health = FPS * 10;
 
-    const int buff_id = rand() % 9 + 1;
+    const int buff_id = rand() % 5 + 1;
     char result[20];
     snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
 
