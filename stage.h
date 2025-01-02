@@ -37,5 +37,6 @@ static void drawFighters();
 static void drawDebris();
 static void drawExplosions();
 static void drawHud();
+static void drawHeart(int x, int y);
 
 #endif //STAGE_H

@@ -15,6 +15,7 @@ SDL_Texture *enemyTexture;
 SDL_Texture *background;
 SDL_Texture *explosionTexture;
 SDL_Texture *pointsTexture;
+SDL_Texture *heartTexture;
 inline Stage stage;
 int enemySpawnTimer;
 int stageResetTimer;
@@ -41,6 +42,7 @@ void initStage() {
     playerTexture = loadTexture("../gfx/clothier.png");
     background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
+    heartTexture = loadTexture("../buff/b9.png");
 
     const int buff_id = rand() % 8 + 1;
     char result[20];
@@ -628,10 +630,20 @@ static void drawExplosions() {
 
 static void drawHud() {
     drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+    drawHeart(10, 40);
 
     if (stage.score > 0 && stage.score == highscore) {
         drawText(960, 10, 0, 255, 0, "HIGH SCORE: %03d", highscore);
     } else {
         drawText(960, 10, 255, 255, 255, "HIGH SCORE: %03d", highscore);
+    }
+}
+
+static void drawHeart(const int x, const int y) {
+    if (heartTexture != nullptr && player != nullptr) {
+        for (int  i = 0; i < player->health; i++) {
+            int heartX = x + i * 20;
+            blit(heartTexture, heartX, y);
+        }
     }
 }
