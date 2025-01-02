@@ -47,6 +47,7 @@ struct Entity {
     int health;
     int reload;
     int side;
+    int buff_type = -1;
     SDL_Texture *texture;
     Entity *next;
 };

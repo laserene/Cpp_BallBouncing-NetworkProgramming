@@ -539,6 +539,7 @@ static void addPointsPod(int x, int y) {
     char result[20];
     snprintf(result, sizeof(result), "../buff/b%d.png", buff_id);
 
+    e->buff_type = buff_id;
     e->texture = loadTexture(result);
 
     SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
