@@ -111,6 +111,7 @@ typedef struct {
     int enemy_map_health;
     int enemy_map_bullet_delta;
     int enemy_map_delta;
+    int enemy_map_rate;
 } modeStat;
 
 #endif //STRUCTS_H

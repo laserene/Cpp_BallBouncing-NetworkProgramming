@@ -45,9 +45,9 @@ int highscore = 0;
 
 Star stars[MAX_STARS];
 
-modeStat spaceStat = {0, 0, 0, 0};
-modeStat hallowStat = {0, 3, 1, 0};
-modeStat snowStat = {1, 0, 0, 1};
+modeStat spaceStat = {0, 0, 0, 0, 0};
+modeStat hallowStat = {0, 3, 1, 0, 0};
+modeStat snowStat = {1, 0, 0, 1, 1};
 
 
 // Init
@@ -316,24 +316,29 @@ static void doFighters() {
     }
 }
 
+void spawn() {
+    auto *enemy = static_cast<Entity *>(malloc(sizeof(Entity)));
+    memset(enemy, 0, sizeof(Entity));
+    stage.fighterTail->next = enemy;
+    stage.fighterTail = enemy;
+    enemy->side = SIDE_ALIEN;
+
+    enemy->health = 1 + gameModeStat.enemy_map_health;
+    enemy->x = SCREEN_WIDTH;
+    enemy->y = rand() % SCREEN_HEIGHT;
+    enemy->texture = enemyTexture;
+    SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
+
+    enemy->dx = -(2 + (rand() % 4)) - gameModeStat.enemy_map_delta;
+
+    enemySpawnTimer = 30 + (rand() % 60);
+    enemy->reload = FPS * (1 + (rand() % 3));
+}
+
 static void spawnEnemies() {
     if (--enemySpawnTimer <= 0) {
-        auto *enemy = static_cast<Entity *>(malloc(sizeof(Entity)));
-        memset(enemy, 0, sizeof(Entity));
-        stage.fighterTail->next = enemy;
-        stage.fighterTail = enemy;
-        enemy->side = SIDE_ALIEN;
-
-        enemy->health = 1 + gameModeStat.enemy_map_health;
-        enemy->x = SCREEN_WIDTH;
-        enemy->y = rand() % SCREEN_HEIGHT;
-        enemy->texture = enemyTexture;
-        SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
-
-        enemy->dx = -(2 + (rand() % 4)) - gameModeStat.enemy_map_delta;
-
-        enemySpawnTimer = 30 + (rand() % 60);
-        enemy->reload = FPS * (1 + (rand() % 3));
+        spawn();
+        if (gameModeStat.enemy_map_rate != 0) spawn();
     }
 }
 
