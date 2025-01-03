@@ -1,4 +1,5 @@
 #include "SDL2/SDL_ttf.h"
+#include "random"
 #include "common.h"
 #include "draw.h"
 #include "init.h"
@@ -7,13 +8,9 @@
 #include "stage.h"
 #include "text.h"
 
-enum GameState { MENU, PLAYING, EXIT };
-
-GameState gameState = MENU;
-int selectedOption = 0;
-
 char *menuOptions[] = {"1. Play Game", "2. Exit"};
 constexpr int menuOptionCount = 2;
+
 
 void renderMenu();
 
@@ -36,6 +33,7 @@ int main(int argc, char *argv[]) {
 
         SDL_Event event;
         if (gameState == MENU) {
+            renderMenu();
             while (SDL_PollEvent(&event)) {
                 handleMenuInput(&event);
             }
@@ -51,12 +49,22 @@ int main(int argc, char *argv[]) {
 
         capFrameRate(&then, &remainder);
 
-        if (gameState == EXIT) {
+        if (gameState == EXIT || gameState == HIGHSCORE) {
             break;
         }
     }
 
     return 0;
+}
+
+void renderMenu() {
+    doBackground();
+    doStarfield();
+    drawBackground();
+    drawStarfield();
+    drawText(520, 200, 255, 255, 255, "1. PLAY GAME");
+    drawText(520, 260, 255, 255, 255, "2. HIGHSCORES");
+    drawText(520, 320, 255, 255, 255, "3. EXIT");
 }
 
 void handleMenuInput(SDL_Event *event) {
@@ -66,8 +74,11 @@ void handleMenuInput(SDL_Event *event) {
                 gameState = PLAYING;
                 break;
             case SDLK_KP_2:
-                gameState = EXIT;
+                gameState = HIGHSCORE;
                 break;
+            case SDLK_KP_3:
+                gameState = EXIT;
+            break;
             default:
                 break;
         }

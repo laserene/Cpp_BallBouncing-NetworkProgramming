@@ -1,6 +1,7 @@
 #include "cstdlib"
 #include "helper.h"
 #include "stage.h"
+#include "ctime"
 
 #include "common.h"
 #include "draw.h"
@@ -18,6 +19,11 @@ SDL_Texture *enemyTexture;
 SDL_Texture *background;
 SDL_Texture *explosionTexture;
 SDL_Texture *pointsTexture;
+
+// Map
+SDL_Texture *spaceTexture;
+SDL_Texture *hallowTexture;
+SDL_Texture *snowTexture;
 
 // Buff texture
 SDL_Texture *addBulletTexture;
@@ -59,12 +65,26 @@ void initStage() {
 
     initPlayer();
 
+    // Map texture
+    spaceTexture = loadTexture("../map/space.jpg");
+    hallowTexture = loadTexture("../map/hallow.png");
+    snowTexture = loadTexture("../map/snow.png");
+
+    // Other
     ballTexture = loadTexture(BALL_PATH);
     enemyTexture = loadTexture(ENEMY_PATH);
     alienBulletTexture = loadTexture("../gfx/enemy_bomb.png");
     playerTexture = loadTexture("../gfx/clothier.png");
-    background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
+
+    if (modeState == RANDOM) {
+        srand(static_cast<unsigned int>(time(0)));
+        const int r = rand() % 3;
+        if (r == 0) background = spaceTexture;
+        else if (r == 1) background = hallowTexture;
+        else background = snowTexture;
+    }
+
 
     addBulletTexture = loadTexture("../buff/b1.png");
     freezeTexture = loadTexture("../buff/b2.png");
@@ -182,13 +202,13 @@ static void logic() {
     doPointsPods();
 }
 
-static void doBackground() {
+void doBackground() {
     if (--backgroundX < -SCREEN_WIDTH) {
         backgroundX = 0;
     }
 }
 
-static void doStarfield() {
+void doStarfield() {
     for (int i = 0; i < MAX_STARS; i++) {
         stars[i].x -= stars[i].speed;
 
@@ -790,7 +810,7 @@ static void draw() {
     drawHud();
 }
 
-static void drawBackground() {
+void drawBackground() {
     SDL_Rect dest;
 
     for (int x = backgroundX; x < SCREEN_WIDTH; x += SCREEN_WIDTH) {
@@ -808,7 +828,7 @@ static void drawBackground() {
     SDL_RenderFillRect(app.renderer, &darkOverlay);
 }
 
-static void drawStarfield() {
+void drawStarfield() {
     for (int i = 0; i < MAX_STARS; i++) {
         const int c = 32 * stars[i].speed;
 
