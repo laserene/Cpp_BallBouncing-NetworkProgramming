@@ -696,7 +696,7 @@ static void addPointsPod(int x, int y) {
     e->health = FPS * 10;
 
     int id;
-    if (getRandomNumber(1, 100) < BUFF_THRESHOLD + stat.player_delta_luck + 100) {
+    if (getRandomNumber(1, 100) < BUFF_THRESHOLD + stat.player_delta_luck) {
         id = rand() % NUM_BUFF;
 
         switch (id) {
@@ -745,7 +745,7 @@ static void consumeDebuff(const int id) {
 
         if (stage.debuffList[i].id == 0) {
             stage.debuffList[i].id = id + 1;
-            stage.debuffList[i].time_to_live = 10 * FPS;
+            stage.debuffList[i].time_to_live = 15 * FPS;
             break;
         }
     }
@@ -989,22 +989,37 @@ void reset_luck() {
 void doDebuff() {
     for (int i = 0; i < NUM_DEBUFF; i++) {
         if (stage.debuffList[i].id == 0) continue;
-
+        stage.debuffList[i].time_to_live -= 1;
         switch (stage.debuffList[i].id - 1) {
             case BLEEDING:
-                apply_bleeding();
+                if (stage.debuffList[i].time_to_live == 0) {
+                    stage.debuffList[i].id = 0;
+                    reset_bleeding();
+                } else apply_bleeding();
                 break;
             case WEAK:
-                apply_weak();
+                if (stage.debuffList[i].time_to_live == 0) {
+                    stage.debuffList[i].id = 0;
+                    reset_weak();
+                } else apply_weak();
                 break;
             case CONFUSION:
-                apply_confusion();
+                if (stage.debuffList[i].time_to_live == 0) {
+                    stage.debuffList[i].id = 0;
+                    reset_confusion();
+                } else apply_confusion();
                 break;
             case DARKNESS:
-                apply_darkness();
+                if (stage.debuffList[i].time_to_live == 0) {
+                    stage.debuffList[i].id = 0;
+                    reset_darkness();
+                } else apply_darkness();
                 break;
             case CHILLED:
-                apply_chilled();
+                if (stage.debuffList[i].time_to_live == 0) {
+                    stage.debuffList[i].id = 0;
+                    reset_chilled();
+                } else apply_chilled();
                 break;
             default:
                 break;
