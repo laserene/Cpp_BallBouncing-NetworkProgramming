@@ -16,6 +16,10 @@ void renderMenu();
 
 void handleMenuInput(SDL_Event *event);
 
+void renderModeMenu();
+
+void handleModeMenuInput(SDL_Event *event);
+
 static void capFrameRate(long *then, float *remainder);
 
 int main(int argc, char *argv[]) {
@@ -36,6 +40,13 @@ int main(int argc, char *argv[]) {
             renderMenu();
             while (SDL_PollEvent(&event)) {
                 handleMenuInput(&event);
+            }
+        }
+
+        if (gameState == MODE) {
+            renderModeMenu();
+            while (SDL_PollEvent(&event)) {
+                handleModeMenuInput(&event);
             }
         }
 
@@ -71,14 +82,53 @@ void handleMenuInput(SDL_Event *event) {
     if (event->type == SDL_KEYDOWN) {
         switch (event->key.keysym.sym) {
             case SDLK_KP_1:
-                gameState = PLAYING;
+                gameState = MODE;
                 break;
             case SDLK_KP_2:
                 gameState = HIGHSCORE;
                 break;
             case SDLK_KP_3:
                 gameState = EXIT;
-            break;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void renderModeMenu() {
+    doBackground();
+    doStarfield();
+    drawBackground();
+    drawStarfield();
+    drawText(520, 140, 255, 255, 255, "CHOOSE MODE");
+    drawText(520, 200, 255, 255, 255, "1. SPACE");
+    drawText(520, 260, 255, 255, 255, "2. HALLOW");
+    drawText(520, 320, 255, 255, 255, "3. SNOW");
+    drawText(520, 380, 255, 255, 255, "4. EXIT");
+}
+
+void handleModeMenuInput(SDL_Event *event) {
+    if (event->type == SDL_KEYDOWN) {
+        switch (event->key.keysym.sym) {
+            case SDLK_KP_1:
+                modeState = SPACE;
+                gameState = PLAYING;
+                initStage();
+                break;
+            case SDLK_KP_2:
+                modeState = HALLOW;
+                gameState = PLAYING;
+                initStage();
+                break;
+            case SDLK_KP_3:
+                modeState = SNOW;
+                gameState = PLAYING;
+                initStage();
+                break;
+            case SDLK_KP_4:
+                gameState = EXIT;
+                break;
             default:
                 break;
         }

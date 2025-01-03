@@ -83,6 +83,12 @@ void initStage() {
         if (r == 0) background = spaceTexture;
         else if (r == 1) background = hallowTexture;
         else background = snowTexture;
+    } else if (modeState == SPACE) {
+        background = spaceTexture;
+    } else if (modeState == HALLOW) {
+        background = hallowTexture;
+    } else if (modeState == SNOW) {
+        background = snowTexture;
     }
 
 

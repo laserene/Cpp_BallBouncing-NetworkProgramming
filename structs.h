@@ -103,7 +103,7 @@ typedef struct {
     int enforced_bullet = 0;
 } Stat;
 
-enum GameState { MENU, PLAYING, HIGHSCORE, EXIT };
+enum GameState { MENU, PLAYING, MODE, HIGHSCORE, EXIT };
 enum ModeState { RANDOM, SPACE, HALLOW, SNOW };
 
 #endif //STRUCTS_H
