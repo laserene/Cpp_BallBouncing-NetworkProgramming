@@ -681,7 +681,7 @@ static void addPointsPod(int x, int y) {
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
         e->x -= e->w / 2;
         e->y -= e->h / 2;
-    } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD - stat.player_delta_luck + 100) {
+    } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD - stat.player_delta_luck) {
         // Debuffs are consumed instantly
         id = rand() % NUM_DEBUFF;
         consumeDebuff(id);
@@ -864,19 +864,19 @@ void doDebuff() {
 
         switch (stage.debuffList[i].id - 1) {
             case BLEEDING:
-                // apply_bleeding();
+                apply_bleeding();
                 break;
             case WEAK:
-                // apply_weak();
+                apply_weak();
                 break;
             case CONFUSION:
                 apply_confusion();
                 break;
             case DARKNESS:
-                // apply_darkness();
+                apply_darkness();
                 break;
             case CHILLED:
-                // apply_chilled();
+                apply_chilled();
                 break;
             default:
                 break;
