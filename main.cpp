@@ -7,6 +7,18 @@
 #include "stage.h"
 #include "text.h"
 
+enum GameState { MENU, PLAYING, EXIT };
+
+GameState gameState = MENU;
+int selectedOption = 0;
+
+char *menuOptions[] = {"1. Play Game", "2. Exit"};
+constexpr int menuOptionCount = 2;
+
+void renderMenu();
+
+void handleMenuInput(SDL_Event *event);
+
 static void capFrameRate(long *then, float *remainder);
 
 int main(int argc, char *argv[]) {
@@ -18,21 +30,48 @@ int main(int argc, char *argv[]) {
 
     long then = SDL_GetTicks();
     float remainder = 0;
+
     while (true) {
         prepareScene();
 
-        doInput();
+        SDL_Event event;
+        if (gameState == MENU) {
+            while (SDL_PollEvent(&event)) {
+                handleMenuInput(&event);
+            }
+        }
 
-        app.delegate.logic();
-
-        app.delegate.draw();
+        if (gameState == PLAYING) {
+            doInput();
+            app.delegate.logic();
+            app.delegate.draw();
+        }
 
         presentScene();
 
         capFrameRate(&then, &remainder);
+
+        if (gameState == EXIT) {
+            break;
+        }
     }
 
     return 0;
+}
+
+void handleMenuInput(SDL_Event *event) {
+    if (event->type == SDL_KEYDOWN) {
+        switch (event->key.keysym.sym) {
+            case SDLK_KP_1:
+                gameState = PLAYING;
+                break;
+            case SDLK_KP_2:
+                gameState = EXIT;
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 static void capFrameRate(long *then, float *remainder) {
