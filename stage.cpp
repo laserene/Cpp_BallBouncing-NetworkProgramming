@@ -649,6 +649,11 @@ static void drawBackground() {
 
         SDL_RenderCopy(app.renderer, background, nullptr, &dest);
     }
+
+    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_BLEND);  // Enable transparency
+    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stage.alpha);             // 50% darkness
+    SDL_Rect darkOverlay = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };   // Full screen
+    SDL_RenderFillRect(app.renderer, &darkOverlay);
 }
 
 static void drawStarfield() {
