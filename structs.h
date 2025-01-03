@@ -95,8 +95,7 @@ typedef struct {
 typedef struct {
     int enemy_delta_bullet = 0;
     float player_delta_bullet = 0;
-    int player_delta_x = 0;
-    int player_delta_y = 0;
+    int player_delta = 0;
     int player_delta_dx = 0;
     int player_delta_dy = 0;
     int alpha = 255;

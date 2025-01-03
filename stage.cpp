@@ -134,6 +134,7 @@ static void resetStage() {
     }
 
     memset(&stage, 0, sizeof(Stage));
+    memset(&stat, 0, sizeof(Stat));
     stage.fighterTail = &stage.fighterHead;
     stage.ballTail = &stage.ballHead;
     stage.explosionTail = &stage.explosionHead;
@@ -161,12 +162,12 @@ static void logic() {
     doBackground();
     doStarfield();
 
+    doDebuff();
     doPlayer();
     doFighters();
     doBullets();
     spawnEnemies();
     doEnemies();
-    doDebuff();
     clipPlayer();
 
     if (player == nullptr && --stageResetTimer <= 0) {
@@ -317,27 +318,27 @@ static void doPlayer() {
         }
 
         if (app.keyboard[SDL_SCANCODE_UP]) {
-            player->dy = -PLAYER_SPEED;
+            player->dy = -PLAYER_SPEED + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_DOWN]) {
-            player->dy = PLAYER_SPEED;
+            player->dy = PLAYER_SPEED - stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LEFT]) {
-            player->dx = -PLAYER_SPEED;
+            player->dx = -PLAYER_SPEED + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_RIGHT]) {
-            player->dx = PLAYER_SPEED;
+            player->dx = PLAYER_SPEED - stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
             fireBullet();
         }
 
-        player->x += player->dx + stat.player_delta_x;
-        player->y += player->dy + stat.player_delta_y;
+        player->x += player->dx + stat.player_delta_dx;
+        player->y += player->dy + stat.player_delta_dx;
     }
 }
 
@@ -803,19 +804,19 @@ void doDebuff() {
 
         switch (stage.debuffList[i].id - 1) {
             case BLEEDING:
-                apply_bleeding();
+                // apply_bleeding();
                 break;
             case WEAK:
-                apply_weak();
+                // apply_weak();
                 break;
             case CONFUSION:
                 apply_confusion();
                 break;
             case DARKNESS:
-                apply_darkness();
+                // apply_darkness();
                 break;
             case CHILLED:
-                apply_chilled();
+                // apply_chilled();
                 break;
             default:
                 break;
@@ -833,8 +834,8 @@ void apply_weak() {
 }
 
 void apply_confusion() {
-    stat.player_delta_dx = rand() % 10;
-    stat.player_delta_dy = rand() % 10;
+    stat.player_delta_dx = getRandomNumber(-PLAYER_SPEED, PLAYER_SPEED);
+    stat.player_delta_dy = getRandomNumber(-PLAYER_SPEED, PLAYER_SPEED);;
 }
 
 void apply_darkness() {
@@ -842,8 +843,7 @@ void apply_darkness() {
 }
 
 void apply_chilled() {
-    stat.player_delta_x = -4;
-    stat.player_delta_y = -4;
+    stat.player_delta = 2;
 }
 
 void reset_bleeding() {
@@ -864,6 +864,5 @@ void reset_darkness() {
 }
 
 void reset_chilled() {
-    stat.player_delta_x = 0;
-    stat.player_delta_y = 0;
+    stat.player_delta = 0;
 }
