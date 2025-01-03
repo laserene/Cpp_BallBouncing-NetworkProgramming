@@ -75,13 +75,6 @@ typedef struct {
     Buff buffList[NUM_BUFF];
     Debuff debuffList[NUM_DEBUFF];
     int score;
-
-    // Debuff effect
-    int enemy_delta_bullet = 0;
-    float player_delta_bullet = 0;
-    int player_delta_x = 0;
-    int player_delta_y = 0;
-    int alpha = 255;
 } Stage;
 
 typedef struct {
@@ -98,5 +91,15 @@ typedef struct {
 typedef struct {
     Highscore highscore[NUM_HIGHSCORES];
 } Highscores;
+
+typedef struct {
+    int enemy_delta_bullet = 0;
+    float player_delta_bullet = 0;
+    int player_delta_x = 0;
+    int player_delta_y = 0;
+    int player_delta_dx = 0;
+    int player_delta_dy = 0;
+    int alpha = 255;
+} Stat;
 
 #endif //STRUCTS_H

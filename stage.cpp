@@ -33,6 +33,7 @@ SDL_Texture *darknessTexture;
 SDL_Texture *chilledTexture;
 
 inline Stage stage;
+inline Stat stat;
 int enemySpawnTimer;
 int stageResetTimer;
 int backgroundX;
@@ -46,12 +47,13 @@ void initStage() {
     app.delegate.draw = draw;
 
     memset(&stage, 0, sizeof(Stage));
+    memset(&stat, 0, sizeof(Stat));
     stage.fighterTail = &stage.fighterHead;
     stage.ballTail = &stage.ballHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
-    stage.alpha = 255;
+    stat.alpha = 255;
 
     initPlayer();
 
@@ -137,7 +139,7 @@ static void resetStage() {
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
-    stage.alpha = 255;
+    stat.alpha = 255;
 
     initPlayer();
     initStarfield();
@@ -164,6 +166,7 @@ static void logic() {
     doBullets();
     spawnEnemies();
     doEnemies();
+    doDebuff();
     clipPlayer();
 
     if (player == nullptr && --stageResetTimer <= 0) {
@@ -333,8 +336,8 @@ static void doPlayer() {
             fireBullet();
         }
 
-        player->x += player->dx + stage.player_delta_x;
-        player->y += player->dy + stage.player_delta_y;
+        player->x += player->dx + stat.player_delta_x;
+        player->y += player->dy + stat.player_delta_y;
     }
 }
 
@@ -348,7 +351,7 @@ static void fireBullet() {
     ball->x = player->x;
     ball->y = player->y;
     ball->dx = PLAYER_BULLET_SPEED;
-    ball->health = 1 + stage.player_delta_bullet;
+    ball->health = 1 + stat.player_delta_bullet;
     ball->texture = ballTexture;
     SDL_QueryTexture(ball->texture, nullptr, nullptr, &ball->w, &ball->h);
 
@@ -421,7 +424,7 @@ static void fireAlienBullet(Entity *e) {
 
     bullet->x = e->x;
     bullet->y = e->y;
-    bullet->health = 1 + stage.enemy_delta_bullet;
+    bullet->health = 1 + stat.enemy_delta_bullet;
     bullet->texture = alienBulletTexture;
     bullet->side = SIDE_ALIEN;
     SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
@@ -621,7 +624,7 @@ static void addPointsPod(int x, int y) {
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
         e->x -= e->w / 2;
         e->y -= e->h / 2;
-    } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD) {
+    } else if (getRandomNumber(1, 100) < 100) {
         // Debuffs are consumed instantly
         id = rand() % NUM_DEBUFF;
         consumeDebuff(id);
@@ -649,23 +652,18 @@ static void consumeDebuff(const int id) {
     switch (stage.debuffList[i].id - 1) {
         case BLEEDING:
             stage.debuffList[i].texture = bleedingTexture;
-            apply_bleeding();
             break;
         case WEAK:
             stage.debuffList[i].texture = weakTexture;
-            apply_weak();
             break;
         case CONFUSION:
             stage.debuffList[i].texture = confusionTexture;
-            apply_confusion();
             break;
         case DARKNESS:
             stage.debuffList[i].texture = darknessTexture;
-            apply_darkness();
             break;
         case CHILLED:
             stage.debuffList[i].texture = chilledTexture;
-            apply_chilled();
             break;
         default:
             break;
@@ -701,7 +699,7 @@ static void drawBackground() {
     }
 
     SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_BLEND); // Enable transparency
-    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stage.alpha); // 50% darkness
+    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stat.alpha); // 50% darkness
     SDL_Rect darkOverlay = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}; // Full screen
     SDL_RenderFillRect(app.renderer, &darkOverlay);
 }
@@ -730,7 +728,7 @@ static void drawPlayer() {
 static void drawBullets() {
     for (const Entity *b = stage.ballHead.next; b != nullptr; b = b->next) {
         if (b->side == SIDE_ALIEN) {
-            SDL_SetTextureAlphaMod(b->texture, stage.alpha);
+            SDL_SetTextureAlphaMod(b->texture, stat.alpha);
         }
         SDL_Rect dest;
         dest.x = b->x;
@@ -799,46 +797,73 @@ static void drawDebuff(const int x, const int y) {
 }
 
 // Debuff
+void doDebuff() {
+    for (int i = 0; i < NUM_DEBUFF; i++) {
+        if (stage.debuffList[i].id == 0) continue;
+
+        switch (stage.debuffList[i].id - 1) {
+            case BLEEDING:
+                apply_bleeding();
+                break;
+            case WEAK:
+                apply_weak();
+                break;
+            case CONFUSION:
+                apply_confusion();
+                break;
+            case DARKNESS:
+                apply_darkness();
+                break;
+            case CHILLED:
+                apply_chilled();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
 void apply_bleeding() {
-    stage.enemy_delta_bullet = 1;
+    stat.enemy_delta_bullet = 1;
 }
 
 void apply_weak() {
-    stage.player_delta_bullet = -0.5;
+    stat.player_delta_bullet = -0.5;
 }
 
 void apply_confusion() {
-    stage.player_delta_x = rand() % 10;
-    stage.player_delta_y = rand() % 10;
+    stat.player_delta_dx = rand() % 10;
+    stat.player_delta_dy = rand() % 10;
 }
 
 void apply_darkness() {
-    stage.alpha = 80;
+    stat.alpha = 80;
 }
 
 void apply_chilled() {
-    stage.player_delta_x = -4;
-    stage.player_delta_y = -4;
+    stat.player_delta_x = -4;
+    stat.player_delta_y = -4;
 }
 
 void reset_bleeding() {
-    stage.enemy_delta_bullet = 0;
+    stat.enemy_delta_bullet = 0;
 }
 
 void reset_weak() {
-    stage.player_delta_bullet = 0;
+    stat.player_delta_bullet = 0;
 };
 
 void reset_confusion() {
-    stage.player_delta_x = 0;
-    stage.player_delta_y = 0;
+    stat.player_delta_dx = 0;
+    stat.player_delta_dy = 0;
 };
 
 void reset_darkness() {
-    stage.alpha = 255;
+    stat.alpha = 255;
 }
 
 void reset_chilled() {
-    stage.player_delta_x = 0;
-    stage.player_delta_y = 0;
+    stat.player_delta_x = 0;
+    stat.player_delta_y = 0;
 }
