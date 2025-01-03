@@ -856,6 +856,14 @@ static void drawDebuff(const int x, const int y) {
 }
 
 static void drawBuff(int x, int y) {
+    int count_buff = 0;
+    for (int i = 0; i < NUM_BUFF; i++) {
+        if (stage.buffList[i].id != 0) {
+            const int buffX = x + count_buff * 34;
+            count_buff += 1;
+            blit(stage.buffList[i].texture, buffX, y);
+        }
+    }
 }
 
 // Debuff
