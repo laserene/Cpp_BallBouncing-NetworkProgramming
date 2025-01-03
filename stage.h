@@ -53,10 +53,8 @@ void apply_heart();
 void apply_refresh();
 
 void reset_enforced_bullet();
-void reset_freeze();
 void reset_speedup();
 void reset_luck();
-void reset_refresh();
 
 // Debuff
 void doDebuff();

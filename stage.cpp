@@ -8,6 +8,8 @@
 #include "text.h"
 #include "defs.h"
 
+// TODO: menu, choose character, time to live buff and debuff by decreasing each loop, map
+
 Entity *player;
 SDL_Texture *playerTexture;
 SDL_Texture *alienBulletTexture;
@@ -601,7 +603,6 @@ static void doPointsPods() {
                 case ENFORCED_BULLET:
                     for (int i = 0; i < NUM_BUFF; i++) {
                         int id = stage.buffList[i].id;
-
                         // Duplicated buff
                         if (e_buff_type == id) break;
 
@@ -610,6 +611,7 @@ static void doPointsPods() {
 
                         stage.buffList[i].id = e_buff_type;
                         stage.buffList[i].texture = e->texture;
+                        stage.buffList[i].time_to_live = 15 * FPS;
                         break;
                     }
                     break;
@@ -628,6 +630,7 @@ static void doPointsPods() {
 
                         stage.buffList[i].id = e_buff_type;
                         stage.buffList[i].texture = e->texture;
+                        stage.buffList[i].time_to_live = 15 * FPS;
                         break;
                     }
                     break;
@@ -643,6 +646,7 @@ static void doPointsPods() {
 
                         stage.buffList[i].id = e_buff_type;
                         stage.buffList[i].texture = e->texture;
+                        stage.buffList[i].time_to_live = 15 * FPS;
                         break;
                     }
                     break;
@@ -893,7 +897,7 @@ static void drawHeart(const int x, const int y) {
 static void drawDebuff(const int x, const int y) {
     int count_debuff = 0;
     for (int i = 0; i < NUM_DEBUFF; i++) {
-        if (stage.debuffList[i].id != -1) {
+        if (stage.debuffList[i].id != 0) {
             const int debuffX = x + count_debuff * 34;
             count_debuff += 1;
             blit(stage.debuffList[i].texture, debuffX, y);
@@ -916,16 +920,25 @@ static void drawBuff(int x, int y) {
 void doBuff() {
     for (int i = 0; i < NUM_BUFF; i++) {
         if (stage.buffList[i].id == 0) continue;
-
+        stage.buffList[i].time_to_live -= 1;
         switch (stage.buffList[i].id - 1) {
             case ENFORCED_BULLET:
-                apply_enforced_bullet();
+                if (stage.buffList[i].time_to_live <= 0) {
+                    stage.buffList[i].id = 0;
+                    reset_enforced_bullet();
+                } else apply_enforced_bullet();
                 break;
             case SPEEDUP:
-                apply_speedup();
+                if (stage.buffList[i].time_to_live <= 0) {
+                    stage.buffList[i].id = 0;
+                    reset_speedup();
+                } else apply_speedup();
                 break;
             case LUCK:
-                apply_luck();
+                if (stage.buffList[i].time_to_live <= 0) {
+                    stage.buffList[i].id = 0;
+                    reset_luck();
+                } else apply_luck();
                 break;
             default:
                 break;
@@ -960,17 +973,17 @@ void apply_refresh() {
     reset_debuff();
 }
 
-void reset_enforced_bullet();
+void reset_enforced_bullet() {
+    stat.enforced_bullet = 0;
+}
 
-void reset_freeze();
+void reset_speedup() {
+    if (stat.player_delta > 0) stat.player_delta = 0;
+}
 
-void reset_speedup();
-
-void reset_luck();
-
-void reset_refresh();
-
-void reset_debuff();
+void reset_luck() {
+    stat.player_delta_luck = 0;
+}
 
 // Debuff
 void doDebuff() {

@@ -8,7 +8,7 @@
 
 struct Buff {
     int id = -1;
-    int time_to_live = 10 * FPS;
+    int time_to_live;
     SDL_Texture *texture;
 };
 
