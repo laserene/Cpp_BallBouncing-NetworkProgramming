@@ -557,18 +557,9 @@ static void doPointsPods() {
                     }
                     break;
                 case FREEZE:
-                    for (int i = 0; i < NUM_BUFF; i++) {
-                        int id = stage.buffList[i].id;
-
-                        // Duplicated buff
-                        if (e_buff_type == id) break;
-
-                        // Non-duplicated existing buff
-                        if (id != 0) continue;
-
-                        stage.buffList[i].id = e_buff_type;
-                        stage.buffList[i].texture = e->texture;
-                        break;
+                    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+                        e->dx = 0;
+                        e->dy = 0;
                     }
                     break;
                 case SPEEDUP:
