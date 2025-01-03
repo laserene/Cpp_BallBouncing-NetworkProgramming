@@ -334,7 +334,8 @@ static void doPlayer() {
         }
 
         if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
-            fireBullet();
+            if (!stat.enforced_bullet) fireBullet();
+            else fireEnforcedBullet();
         }
 
         player->x += player->dx + stat.player_delta_dx;
@@ -357,6 +358,61 @@ static void fireBullet() {
     SDL_QueryTexture(ball->texture, nullptr, nullptr, &ball->w, &ball->h);
 
     ball->y += (player->h / 2) - (ball->h / 2);
+
+    player->reload = 8;
+}
+
+static void fireEnforcedBullet() {
+    auto *ball1 = static_cast<Entity *>(malloc(sizeof(Entity)));
+    auto *ball2 = static_cast<Entity *>(malloc(sizeof(Entity)));
+    auto *ball3 = static_cast<Entity *>(malloc(sizeof(Entity)));
+
+    memset(ball1, 0, sizeof(Entity));
+    memset(ball2, 0, sizeof(Entity));
+    memset(ball3, 0, sizeof(Entity));
+
+    stage.ballTail->next = ball1;
+    stage.ballTail = ball1;
+    stage.ballTail->next = ball2;
+    stage.ballTail = ball2;
+    stage.ballTail->next = ball3;
+    stage.ballTail = ball3;
+
+    ball1->side = SIDE_PLAYER;
+    ball2->side = SIDE_PLAYER;
+    ball3->side = SIDE_PLAYER;
+
+    ball1->x = player->x;
+    ball2->x = player->x;
+    ball3->x = player->x;
+
+    ball1->y = player->y;
+    ball2->y = player->y;
+    ball3->y = player->y;
+
+    ball1->dx = PLAYER_BULLET_SPEED;
+    ball1->dy = PLAYER_BULLET_SPEED;
+
+    ball2->dx = PLAYER_BULLET_SPEED;
+
+    ball3->dx = PLAYER_BULLET_SPEED;
+    ball3->dy = -PLAYER_BULLET_SPEED;
+
+    ball1->health = 1 + stat.player_delta_bullet;
+    ball2->health = 1 + stat.player_delta_bullet;
+    ball3->health = 1 + stat.player_delta_bullet;
+
+    ball1->texture = ballTexture;
+    ball2->texture = ballTexture;
+    ball3->texture = ballTexture;
+
+    SDL_QueryTexture(ball1->texture, nullptr, nullptr, &ball1->w, &ball1->h);
+    SDL_QueryTexture(ball2->texture, nullptr, nullptr, &ball2->w, &ball2->h);
+    SDL_QueryTexture(ball3->texture, nullptr, nullptr, &ball3->w, &ball3->h);
+
+    ball1->y += (player->h / 2) - (ball1->h / 2);
+    ball2->y += (player->h / 2) - (ball2->h / 2);
+    ball3->y += (player->h / 2) - (ball3->h / 2);
 
     player->reload = 8;
 }
@@ -555,7 +611,7 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
-
+                    stat.enforced_bullet = 1;
                     break;
                 case FREEZE:
                     for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {

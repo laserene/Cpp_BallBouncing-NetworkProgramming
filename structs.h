@@ -100,6 +100,7 @@ typedef struct {
     int player_delta_dy = 0;
     int player_delta_luck = 0;
     int alpha = 255;
+    int enforced_bullet = 0;
 } Stat;
 
 #endif //STRUCTS_H

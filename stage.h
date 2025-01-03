@@ -10,6 +10,7 @@ static void resetStage();
 static void logic();
 static void doPlayer();
 static void fireBullet();
+static void fireEnforcedBullet();
 static void doFighters();
 static void doBullets();
 static void spawnEnemies();
