@@ -586,7 +586,7 @@ static void consumeDebuff(const int id) {
 
         if (stage.debuffList[i].id == 0) {
             stage.debuffList[i].id = id + 1;
-            stage.debuffList[i].time_to_live = 20 * FPS;
+            stage.debuffList[i].time_to_live = 10 * FPS;
             break;
         }
     }
