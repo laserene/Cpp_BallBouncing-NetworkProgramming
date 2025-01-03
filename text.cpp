@@ -11,7 +11,7 @@ SDL_Texture *fontTexture;
 char drawTextBuffer[MAX_LINE_LENGTH];
 
 void initFonts() {
-    fontTexture = loadTexture("../gfx/font.png");
+    fontTexture = loadTexture("../font/font.png");
 }
 
 void drawText(int x, const int y, const int r, const int g, const int b, char *format, ...) {
