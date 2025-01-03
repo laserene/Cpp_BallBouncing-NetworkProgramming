@@ -539,24 +539,80 @@ static void doPointsPods() {
             e->health = 0;
 
             // TODO: Add buff effect
-            switch (e->buff_type - 1) {
+            int e_buff_type = e->buff_type;
+            switch (e_buff_type - 1) {
                 case ADD_BULLET:
+                    for (int i = 0; i < NUM_BUFF; i++) {
+                        int id = stage.buffList[i].id;
+
+                        // Duplicated buff
+                        if (e_buff_type == id) break;
+
+                        // Non-duplicated existing buff
+                        if (id != 0) continue;
+
+                        stage.buffList[i].id = e_buff_type;
+                        stage.buffList[i].texture = e->texture;
+                        break;
+                    }
                     break;
                 case FREEZE:
+                    for (int i = 0; i < NUM_BUFF; i++) {
+                        int id = stage.buffList[i].id;
+
+                        // Duplicated buff
+                        if (e_buff_type == id) break;
+
+                        // Non-duplicated existing buff
+                        if (id != 0) continue;
+
+                        stage.buffList[i].id = e_buff_type;
+                        stage.buffList[i].texture = e->texture;
+                        break;
+                    }
                     break;
                 case SPEEDUP:
+                    for (int i = 0; i < NUM_BUFF; i++) {
+                        int id = stage.buffList[i].id;
+
+                        // Duplicated buff
+                        if (e_buff_type == id) break;
+
+                        // Non-duplicated existing buff
+                        if (id != 0) continue;
+
+                        stage.buffList[i].id = e_buff_type;
+                        stage.buffList[i].texture = e->texture;
+                        break;
+                    }
                     break;
                 case LUCK:
+                    for (int i = 0; i < NUM_BUFF; i++) {
+                        int id = stage.buffList[i].id;
+
+                        // Duplicated buff
+                        if (e_buff_type == id) break;
+
+                        // Non-duplicated existing buff
+                        if (id != 0) continue;
+
+                        stage.buffList[i].id = e_buff_type;
+                        stage.buffList[i].texture = e->texture;
+                        break;
+                    }
+                    stat.player_delta_luck = 5;
                     break;
                 case HEART:
                     if (player->health < 10) player->health += 1;
+                    printf("heart");
                     break;
                 case REFRESH:
+                    // TODO: Refresh stat and remove all elements in stage.debuffList
+                    reset_debuff();
                     break;
             }
 
             stage.score++;
-
             highscore = MAX(stage.score, highscore);
         }
 
@@ -593,7 +649,7 @@ static void addPointsPod(int x, int y) {
     e->health = FPS * 10;
 
     int id;
-    if (getRandomNumber(1, 100) < BUFF_THRESHOLD) {
+    if (getRandomNumber(1, 100) < BUFF_THRESHOLD + stat.player_delta_luck) {
         id = rand() % NUM_BUFF;
 
         switch (id) {
@@ -625,7 +681,7 @@ static void addPointsPod(int x, int y) {
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
         e->x -= e->w / 2;
         e->y -= e->h / 2;
-    } else if (getRandomNumber(1, 100) < 100) {
+    } else if (getRandomNumber(1, 100) < DEBUFF_THRESHOLD - stat.player_delta_luck + 100) {
         // Debuffs are consumed instantly
         id = rand() % NUM_DEBUFF;
         consumeDebuff(id);
@@ -769,6 +825,7 @@ static void drawHud() {
     drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
     drawDebuff(200, 6);
     drawHeart(10, 40);
+    drawBuff(200, 40);
 
     if (stage.score > 0 && stage.score == highscore) {
         drawText(960, 10, 0, 255, 0, "HIGH SCORE: %03d", highscore);
@@ -795,6 +852,9 @@ static void drawDebuff(const int x, const int y) {
             blit(stage.debuffList[i].texture, debuffX, y);
         }
     }
+}
+
+static void drawBuff(int x, int y) {
 }
 
 // Debuff
@@ -865,4 +925,13 @@ void reset_darkness() {
 
 void reset_chilled() {
     stat.player_delta = 0;
+}
+
+void reset_debuff() {
+    memset(stage.debuffList, 0, sizeof(Debuff) * NUM_DEBUFF);
+    reset_bleeding();
+    reset_weak();
+    reset_confusion();
+    reset_darkness();
+    if (stat.player_delta < 0) reset_chilled();
 }

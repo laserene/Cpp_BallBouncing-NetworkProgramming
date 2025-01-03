@@ -98,6 +98,7 @@ typedef struct {
     int player_delta = 0;
     int player_delta_dx = 0;
     int player_delta_dy = 0;
+    int player_delta_luck = 0;
     int alpha = 255;
 } Stat;
 

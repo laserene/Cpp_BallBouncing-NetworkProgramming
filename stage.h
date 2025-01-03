@@ -40,6 +40,7 @@ static void drawExplosions();
 static void drawHud();
 static void drawHeart(int x, int y);
 static void drawDebuff(int x, int y);
+static void drawBuff(int x, int y);
 
 // Buff
 void doBuff();
@@ -54,6 +55,21 @@ void reset_freeze();
 void reset_speedup();
 void reset_luck();
 void reset_refresh();
+
+// Buff
+void doBuff();
+void apply_add_bullet();
+void apply_freeze();
+void apply_speedup();
+void apply_luck();
+void apply_refresh();
+
+void reset_add_bullet();
+void reset_freeze();
+void reset_speedup();
+void reset_luck();
+void reset_refresh();
+void reset_debuff();
 
 // Debuff
 void doDebuff();
