@@ -8,7 +8,7 @@
 #include "text.h"
 #include "defs.h"
 
-// TODO: menu, choose character, time to live buff and debuff by decreasing each loop, map
+// TODO: menu, choose character, map
 
 Entity *player;
 SDL_Texture *playerTexture;
