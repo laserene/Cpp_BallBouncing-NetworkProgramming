@@ -66,8 +66,8 @@ void initStage() {
 
     addBulletTexture = loadTexture("../buff/b1.png");
     freezeTexture = loadTexture("../buff/b2.png");
-    speedUpTexture = loadTexture("../buff/speed.png");
-    luckTexture = loadTexture("../buff/luck.png");
+    speedUpTexture = loadTexture("../buff/b3.png");
+    luckTexture = loadTexture("../buff/b4.png");
     heartTexture = loadTexture("../buff/b5.png");
     refreshTexture = loadTexture("../buff/b6.png");
 
@@ -649,7 +649,7 @@ static void addPointsPod(int x, int y) {
     e->health = FPS * 10;
 
     int id;
-    if (getRandomNumber(1, 100) < BUFF_THRESHOLD + stat.player_delta_luck) {
+    if (getRandomNumber(1, 100) < BUFF_THRESHOLD + stat.player_delta_luck + 100) {
         id = rand() % NUM_BUFF;
 
         switch (id) {
@@ -933,5 +933,5 @@ void reset_debuff() {
     reset_weak();
     reset_confusion();
     reset_darkness();
-    if (stat.player_delta < 0) reset_chilled();
+    if (stat.player_delta > 0) reset_chilled();
 }
