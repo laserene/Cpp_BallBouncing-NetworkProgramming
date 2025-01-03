@@ -535,6 +535,21 @@ static void doPointsPods() {
             e->health = 0;
 
             // TODO: Add buff effect
+            switch (e->buff_type - 1) {
+                case ADD_BULLET:
+                    break;
+                case FREEZE:
+                    break;
+                case SPEEDUP:
+                    break;
+                case LUCK:
+                    break;
+                case HEART:
+                    if (player->health < 10) player->health += 1;
+                    break;
+                case REFRESH:
+                    break;
+            }
 
             stage.score++;
 
@@ -580,24 +595,29 @@ static void addPointsPod(int x, int y) {
         switch (id) {
             case ADD_BULLET:
                 e->texture = addBulletTexture;
+                e->buff_type = id + 1;
                 break;
             case FREEZE:
                 e->texture = freezeTexture;
+                e->buff_type = id + 1;
                 break;
             case SPEEDUP:
                 e->texture = speedUpTexture;
+                e->buff_type = id + 1;
                 break;
             case LUCK:
                 e->texture = luckTexture;
+                e->buff_type = id + 1;
                 break;
             case HEART:
                 e->texture = heartTexture;
+                e->buff_type = id + 1;
                 break;
             case REFRESH:
                 e->texture = refreshTexture;
+                e->buff_type = id + 1;
                 break;
         }
-
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
         e->x -= e->w / 2;
         e->y -= e->h / 2;
