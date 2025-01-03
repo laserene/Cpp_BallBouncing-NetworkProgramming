@@ -22,4 +22,6 @@ inline SDL_Texture *bombTexture;
 inline SDL_Texture *eggTexture;
 inline SDL_Texture *candycaneTexture;
 
+inline modeStat gameModeStat;
+
 #endif //COMMON_H

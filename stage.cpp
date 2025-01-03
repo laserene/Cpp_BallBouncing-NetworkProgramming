@@ -1,6 +1,7 @@
 #include "cstdlib"
 #include "helper.h"
 #include "stage.h"
+#include "cstring"
 #include "ctime"
 
 #include "common.h"
@@ -44,6 +45,11 @@ int highscore = 0;
 
 Star stars[MAX_STARS];
 
+modeStat spaceStat = {0, 0, 0, 0};
+modeStat hallowStat = {0, 3, 1, 0};
+modeStat snowStat = {1, 0, 0, 1};
+
+
 // Init
 void initStage() {
     app.delegate.logic = logic;
@@ -67,7 +73,7 @@ void initStage() {
 
     // Enemy texture
     mushroomTexture = loadTexture(ENEMY_PATH);
-    umbrellaTexture = loadTexture("../gfx/umbrella.png");
+    umbrellaTexture = loadTexture("../gfx/queen.png");
     snowmanTexture = loadTexture("../gfx/snowman.png");
 
     // Enemy bullet
@@ -91,14 +97,17 @@ void initStage() {
         background = spaceTexture;
         enemyTexture = mushroomTexture;
         alienBulletTexture = bombTexture;
+        gameModeStat = spaceStat;
     } else if (modeState == HALLOW) {
         background = hallowTexture;
         enemyTexture = umbrellaTexture;
         alienBulletTexture = eggTexture;
+        gameModeStat = hallowStat;
     } else if (modeState == SNOW) {
         background = snowTexture;
         enemyTexture = snowmanTexture;
         alienBulletTexture = candycaneTexture;
+        gameModeStat = snowStat;
     }
 
 
@@ -315,13 +324,13 @@ static void spawnEnemies() {
         stage.fighterTail = enemy;
         enemy->side = SIDE_ALIEN;
 
-        enemy->health = 1;
+        enemy->health = 1 + gameModeStat.enemy_map_health;
         enemy->x = SCREEN_WIDTH;
         enemy->y = rand() % SCREEN_HEIGHT;
         enemy->texture = enemyTexture;
         SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
 
-        enemy->dx = -(2 + (rand() % 4));
+        enemy->dx = -(2 + (rand() % 4)) - gameModeStat.enemy_map_delta;
 
         enemySpawnTimer = 30 + (rand() % 60);
         enemy->reload = FPS * (1 + (rand() % 3));
@@ -357,19 +366,19 @@ static void doPlayer() {
         }
 
         if (app.keyboard[SDL_SCANCODE_UP]) {
-            player->dy = -PLAYER_SPEED + stat.player_delta;
+            player->dy = -PLAYER_SPEED + stat.player_delta + gameModeStat.player_map_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_DOWN]) {
-            player->dy = PLAYER_SPEED - stat.player_delta;
+            player->dy = PLAYER_SPEED - stat.player_delta - gameModeStat.player_map_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LEFT]) {
-            player->dx = -PLAYER_SPEED + stat.player_delta;
+            player->dx = -PLAYER_SPEED + stat.player_delta + gameModeStat.player_map_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_RIGHT]) {
-            player->dx = PLAYER_SPEED - stat.player_delta;
+            player->dx = PLAYER_SPEED - stat.player_delta - gameModeStat.player_map_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
@@ -530,8 +539,8 @@ static void fireAlienBullet(Entity *e) {
 
     calcSlope(player->x + (player->w / 2), player->y + (player->h / 2), e->x, e->y, &bullet->dx, &bullet->dy);
 
-    bullet->dx *= ALIEN_BULLET_SPEED;
-    bullet->dy *= ALIEN_BULLET_SPEED;
+    bullet->dx *= ALIEN_BULLET_SPEED + gameModeStat.enemy_map_bullet_delta;
+    bullet->dy *= ALIEN_BULLET_SPEED + gameModeStat.enemy_map_bullet_delta;
 
     e->reload = (rand() % FPS * 2);
 }

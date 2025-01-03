@@ -108,7 +108,9 @@ enum ModeState { RANDOM, SPACE, HALLOW, SNOW };
 
 typedef struct {
     int player_map_delta;
-
+    int enemy_map_health;
+    int enemy_map_bullet_delta;
+    int enemy_map_delta;
 } modeStat;
 
 #endif //STRUCTS_H
