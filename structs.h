@@ -106,4 +106,9 @@ typedef struct {
 enum GameState { MENU, PLAYING, MODE, HIGHSCORE, EXIT };
 enum ModeState { RANDOM, SPACE, HALLOW, SNOW };
 
+typedef struct {
+    int player_map_delta;
+
+} modeStat;
+
 #endif //STRUCTS_H

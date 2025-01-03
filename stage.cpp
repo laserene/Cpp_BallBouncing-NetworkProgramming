@@ -20,11 +20,6 @@ SDL_Texture *background;
 SDL_Texture *explosionTexture;
 SDL_Texture *pointsTexture;
 
-// Map
-SDL_Texture *spaceTexture;
-SDL_Texture *hallowTexture;
-SDL_Texture *snowTexture;
-
 // Buff texture
 SDL_Texture *addBulletTexture;
 SDL_Texture *freezeTexture;
@@ -70,10 +65,19 @@ void initStage() {
     hallowTexture = loadTexture("../map/hallow.png");
     snowTexture = loadTexture("../map/snow.png");
 
+    // Enemy texture
+    mushroomTexture = loadTexture(ENEMY_PATH);
+    umbrellaTexture = loadTexture("../gfx/umbrella.png");
+    snowmanTexture = loadTexture("../gfx/snowman.png");
+
+    // Enemy bullet
+    bombTexture = loadTexture(BALL_PATH);
+    eggTexture = loadTexture("../gfx/havenly.png");
+    candycaneTexture = loadTexture("../gfx/candy.png");
+
     // Other
     ballTexture = loadTexture(BALL_PATH);
-    enemyTexture = loadTexture(ENEMY_PATH);
-    alienBulletTexture = loadTexture("../gfx/enemy_bomb.png");
+
     playerTexture = loadTexture("../gfx/clothier.png");
     explosionTexture = loadTexture("../gfx/star.png");
 
@@ -85,10 +89,16 @@ void initStage() {
         else background = snowTexture;
     } else if (modeState == SPACE) {
         background = spaceTexture;
+        enemyTexture = mushroomTexture;
+        alienBulletTexture = bombTexture;
     } else if (modeState == HALLOW) {
         background = hallowTexture;
+        enemyTexture = umbrellaTexture;
+        alienBulletTexture = eggTexture;
     } else if (modeState == SNOW) {
         background = snowTexture;
+        enemyTexture = snowmanTexture;
+        alienBulletTexture = candycaneTexture;
     }
 
 
