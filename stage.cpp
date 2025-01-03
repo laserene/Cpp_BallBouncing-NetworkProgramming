@@ -16,7 +16,14 @@ SDL_Texture *enemyTexture;
 SDL_Texture *background;
 SDL_Texture *explosionTexture;
 SDL_Texture *pointsTexture;
+
+// Buff texture
+SDL_Texture *addBulletTexture;
+SDL_Texture *freezeTexture;
+SDL_Texture *speedUpTexture;
+SDL_Texture *luckTexture;
 SDL_Texture *heartTexture;
+SDL_Texture *refreshTexture;
 
 // Debuff texture
 SDL_Texture *bleedingTexture;
@@ -54,7 +61,13 @@ void initStage() {
     playerTexture = loadTexture("../gfx/clothier.png");
     background = loadTexture("../map/space.jpg");
     explosionTexture = loadTexture("../gfx/star.png");
+
+    addBulletTexture = loadTexture("../buff/b1.png");
+    freezeTexture = loadTexture("../buff/b2.png");
+    speedUpTexture = loadTexture("../buff/speed.png");
+    luckTexture = loadTexture("../buff/luck.png");
     heartTexture = loadTexture("../buff/b5.png");
+    refreshTexture = loadTexture("../buff/b6.png");
 
     bleedingTexture = loadTexture("../debuff/db1.png");
     weakTexture = loadTexture("../debuff/db2.png");
@@ -562,10 +575,29 @@ static void addPointsPod(int x, int y) {
 
     int id;
     if (getRandomNumber(1, 100) < BUFF_THRESHOLD) {
-        id = rand() % NUM_BUFF + 1;
-        char result[20];
-        snprintf(result, sizeof(result), "../buff/b%d.png", id);
-        e->texture = loadTexture(result);
+        id = rand() % NUM_BUFF;
+
+        switch (id) {
+            case ADD_BULLET:
+                e->texture = addBulletTexture;
+                break;
+            case FREEZE:
+                e->texture = freezeTexture;
+                break;
+            case SPEEDUP:
+                e->texture = speedUpTexture;
+                break;
+            case LUCK:
+                e->texture = luckTexture;
+                break;
+            case HEART:
+                e->texture = heartTexture;
+                break;
+            case REFRESH:
+                e->texture = refreshTexture;
+                break;
+        }
+
         SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
         e->x -= e->w / 2;
         e->y -= e->h / 2;
@@ -597,25 +629,23 @@ static void consumeDebuff(const int id) {
     switch (stage.debuffList[i].id - 1) {
         case BLEEDING:
             stage.debuffList[i].texture = bleedingTexture;
-            stage.enemy_delta_bullet = 1;
+            apply_bleeding();
             break;
         case WEAK:
             stage.debuffList[i].texture = weakTexture;
-            stage.player_delta_bullet = -0.5;
+            apply_weak();
             break;
         case CONFUSION:
             stage.debuffList[i].texture = confusionTexture;
-            stage.player_delta_x = rand() % 10;
-            stage.player_delta_y = rand() % 10;
+            apply_confusion();
             break;
         case DARKNESS:
             stage.debuffList[i].texture = darknessTexture;
-            stage.alpha = 80;
+            apply_darkness();
             break;
         case CHILLED:
             stage.debuffList[i].texture = chilledTexture;
-            stage.player_delta_x = -4;
-            stage.player_delta_y = -4;
+            apply_chilled();
             break;
         default:
             break;
@@ -650,9 +680,9 @@ static void drawBackground() {
         SDL_RenderCopy(app.renderer, background, nullptr, &dest);
     }
 
-    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_BLEND);  // Enable transparency
-    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stage.alpha);             // 50% darkness
-    SDL_Rect darkOverlay = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };   // Full screen
+    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_BLEND); // Enable transparency
+    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stage.alpha); // 50% darkness
+    SDL_Rect darkOverlay = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}; // Full screen
     SDL_RenderFillRect(app.renderer, &darkOverlay);
 }
 
@@ -746,4 +776,49 @@ static void drawDebuff(const int x, const int y) {
             blit(stage.debuffList[i].texture, debuffX, y);
         }
     }
+}
+
+// Debuff
+void apply_bleeding() {
+    stage.enemy_delta_bullet = 1;
+}
+
+void apply_weak() {
+    stage.player_delta_bullet = -0.5;
+}
+
+void apply_confusion() {
+    stage.player_delta_x = rand() % 10;
+    stage.player_delta_y = rand() % 10;
+}
+
+void apply_darkness() {
+    stage.alpha = 80;
+}
+
+void apply_chilled() {
+    stage.player_delta_x = -4;
+    stage.player_delta_y = -4;
+}
+
+void reset_bleeding() {
+    stage.enemy_delta_bullet = 0;
+}
+
+void reset_weak() {
+    stage.player_delta_bullet = 0;
+};
+
+void reset_confusion() {
+    stage.player_delta_x = 0;
+    stage.player_delta_y = 0;
+};
+
+void reset_darkness() {
+    stage.alpha = 255;
+}
+
+void reset_chilled() {
+    stage.player_delta_x = 0;
+    stage.player_delta_y = 0;
 }
