@@ -1,8 +1,3 @@
 .idea/
 cmake-build-debug/
-gfx/
-fonts/
-map/
-buff/
-debuff/
 CMakeLists.txt
