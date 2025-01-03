@@ -5,7 +5,7 @@
 #define BUFF_THRESHOLD 15
 
 enum {
-    ADD_BULLET,
+    ENFORCED_BULLET,
     FREEZE,
     SPEEDUP,
     LUCK,

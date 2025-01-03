@@ -541,7 +541,7 @@ static void doPointsPods() {
             // TODO: Add buff effect
             int e_buff_type = e->buff_type;
             switch (e_buff_type - 1) {
-                case ADD_BULLET:
+                case ENFORCED_BULLET:
                     for (int i = 0; i < NUM_BUFF; i++) {
                         int id = stage.buffList[i].id;
 
@@ -555,6 +555,7 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
+
                     break;
                 case FREEZE:
                     for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
@@ -645,7 +646,7 @@ static void addPointsPod(int x, int y) {
         id = rand() % NUM_BUFF;
 
         switch (id) {
-            case ADD_BULLET:
+            case ENFORCED_BULLET:
                 e->texture = addBulletTexture;
                 e->buff_type = id + 1;
                 break;
