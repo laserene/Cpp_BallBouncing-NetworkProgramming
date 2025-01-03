@@ -81,6 +81,7 @@ typedef struct {
     float player_delta_bullet = 0;
     int player_delta_x = 0;
     int player_delta_y = 0;
+    int alpha = 255;
 } Stage;
 
 typedef struct {

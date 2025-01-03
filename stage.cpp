@@ -44,6 +44,7 @@ void initStage() {
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
+    stage.alpha = 255;
 
     initPlayer();
 
@@ -123,6 +124,7 @@ static void resetStage() {
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
+    stage.alpha = 255;
 
     initPlayer();
     initStarfield();
@@ -577,6 +579,7 @@ static void addPointsPod(int x, int y) {
 static void consumeDebuff(const int id) {
     int i;
     for (i = 0; i < NUM_DEBUFF; i++) {
+        // Duplicated debuff
         if (stage.debuffList[i].id == id + 1) {
             return;
         }
@@ -607,6 +610,7 @@ static void consumeDebuff(const int id) {
             break;
         case DARKNESS:
             stage.debuffList[i].texture = darknessTexture;
+            stage.alpha = 80;
             break;
         case CHILLED:
             stage.debuffList[i].texture = chilledTexture;
@@ -670,7 +674,14 @@ static void drawPlayer() {
 
 static void drawBullets() {
     for (const Entity *b = stage.ballHead.next; b != nullptr; b = b->next) {
-        blit(b->texture, b->x, b->y);
+        if (b->side == SIDE_ALIEN) {
+            SDL_SetTextureAlphaMod(b->texture, stage.alpha);
+        }
+        SDL_Rect dest;
+        dest.x = b->x;
+        dest.y = b->y;
+        SDL_QueryTexture(b->texture, nullptr, nullptr, &dest.w, &dest.h);
+        SDL_RenderCopy(app.renderer, b->texture, nullptr, &dest);
     }
 }
 

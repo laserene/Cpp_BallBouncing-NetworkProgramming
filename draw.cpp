@@ -4,7 +4,7 @@
 #include "draw.h"
 
 void prepareScene() {
-    SDL_SetRenderDrawColor(app.renderer, 100, 200, 100, 255);
+    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255);
     SDL_RenderClear(app.renderer);
 }
 
