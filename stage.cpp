@@ -162,6 +162,7 @@ static void logic() {
     doBackground();
     doStarfield();
 
+    doBuff();
     doDebuff();
     doPlayer();
     doFighters();
@@ -611,13 +612,9 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
-                    stat.enforced_bullet = 1;
                     break;
                 case FREEZE:
-                    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
-                        e->dx = 0;
-                        e->dy = 0;
-                    }
+                    apply_freeze();
                     break;
                 case SPEEDUP:
                     for (int i = 0; i < NUM_BUFF; i++) {
@@ -633,7 +630,6 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
-                    stat.player_delta = -1;
                     break;
                 case LUCK:
                     for (int i = 0; i < NUM_BUFF; i++) {
@@ -649,15 +645,13 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
-                    stat.player_delta_luck = 5;
                     break;
                 case HEART:
-                    if (player->health < 10) player->health += 1;
-                    printf("heart");
+                    apply_heart();
                     break;
                 case REFRESH:
                     // TODO: Refresh stat and remove all elements in stage.debuffList
-                    reset_debuff();
+                    apply_refresh();
                     break;
             }
 
@@ -917,6 +911,66 @@ static void drawBuff(int x, int y) {
         }
     }
 }
+
+// Buff
+void doBuff() {
+    for (int i = 0; i < NUM_BUFF; i++) {
+        if (stage.buffList[i].id == 0) continue;
+
+        switch (stage.buffList[i].id - 1) {
+            case ENFORCED_BULLET:
+                apply_enforced_bullet();
+                break;
+            case SPEEDUP:
+                apply_speedup();
+                break;
+            case LUCK:
+                apply_luck();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void apply_enforced_bullet() {
+    stat.enforced_bullet = 1;
+}
+
+void apply_freeze() {
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        e->dx = 0;
+        e->dy = 0;
+    }
+}
+
+void apply_speedup() {
+    stat.player_delta = -1;
+}
+
+void apply_luck() {
+    stat.player_delta_luck = 5;
+}
+
+void apply_heart() {
+    if (player->health < 10) player->health += 1;
+}
+
+void apply_refresh() {
+    reset_debuff();
+}
+
+void reset_enforced_bullet();
+
+void reset_freeze();
+
+void reset_speedup();
+
+void reset_luck();
+
+void reset_refresh();
+
+void reset_debuff();
 
 // Debuff
 void doDebuff() {

@@ -45,32 +45,18 @@ static void drawBuff(int x, int y);
 
 // Buff
 void doBuff();
-void apply_add_bullet();
+void apply_enforced_bullet();
 void apply_freeze();
 void apply_speedup();
 void apply_luck();
+void apply_heart();
 void apply_refresh();
 
-void reset_add_bullet();
+void reset_enforced_bullet();
 void reset_freeze();
 void reset_speedup();
 void reset_luck();
 void reset_refresh();
-
-// Buff
-void doBuff();
-void apply_add_bullet();
-void apply_freeze();
-void apply_speedup();
-void apply_luck();
-void apply_refresh();
-
-void reset_add_bullet();
-void reset_freeze();
-void reset_speedup();
-void reset_luck();
-void reset_refresh();
-void reset_debuff();
 
 // Debuff
 void doDebuff();
@@ -85,5 +71,6 @@ void reset_weak();
 void reset_confusion();
 void reset_darkness();
 void reset_chilled();
+void reset_debuff();
 
 #endif //STAGE_H
