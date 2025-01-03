@@ -585,6 +585,7 @@ static void doPointsPods() {
                         stage.buffList[i].texture = e->texture;
                         break;
                     }
+                    stat.player_delta = -1;
                     break;
                 case LUCK:
                     for (int i = 0; i < NUM_BUFF; i++) {
