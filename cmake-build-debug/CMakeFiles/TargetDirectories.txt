@@ -1,0 +1,3 @@
+/home/laserene/professionals/network_programming/auth/cmake-build-debug/CMakeFiles/auth.dir
+/home/laserene/professionals/network_programming/auth/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/laserene/professionals/network_programming/auth/cmake-build-debug/CMakeFiles/rebuild_cache.dir
