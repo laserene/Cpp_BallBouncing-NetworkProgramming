@@ -1,5 +1,6 @@
 #include "cstdio"
 #include "cstdlib"
+#include "messages.h"
 #include "cstring"
 #include "unistd.h"
 #include "pthread.h"
@@ -14,6 +15,11 @@
 // Init mutex and array to store client sockets
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int client_sockets[MAX_CLIENTS] = {};
+
+void *handle_client(void *arg) {
+
+    return nullptr;
+}
 
 int main(const int argc, char *argv[]) {
     if (argc != 2) {
@@ -52,13 +58,16 @@ int main(const int argc, char *argv[]) {
     pthread_t threads[MAX_CLIENTS];
     int thread_index = 0;
 
+    // Loop
     while (true) {
+        // New client sock
         client_sock = accept(server_sock, reinterpret_cast<sockaddr *>(&client_addr), &client_len);
         if (client_sock == -1) {
             perror("Accept failed");
             continue;
         }
 
+        // Add new client to client list
         pthread_mutex_lock(&mutex);
         int added = 0;
         for (int &client_socket : client_sockets) {
@@ -70,14 +79,16 @@ int main(const int argc, char *argv[]) {
         }
         pthread_mutex_unlock(&mutex);
 
+        // Server full check
         if (!added) {
-            send(client_sock, "Server full", 12, 0);
+            send(client_sock, REPLY_SERVER_FULL, 12, 0);
             close(client_sock);
             continue;
         }
 
+        // Create a thread for new client
         printf("New client connected\n");
-        pthread_create(&threads[thread_index++], NULL, handle_client, &client_sock);
+        pthread_create(&threads[thread_index++], nullptr, handle_client, &client_sock);
     }
 
     close(server_sock);
