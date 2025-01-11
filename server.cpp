@@ -5,7 +5,6 @@
 #include "unistd.h"
 #include "pthread.h"
 #include "arpa/inet.h"
-#include "fcntl.h"
 #include "sys/socket.h"
 
 #define MAX_CLIENTS 5
@@ -16,7 +15,109 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int client_sockets[MAX_CLIENTS] = {};
 
+void broadcast_message(const char *message, const int sender_sock) {
+    pthread_mutex_lock(&mutex);
+    for (const int client_socket : client_sockets) {
+        if (client_socket != 0 && client_socket != sender_sock) {
+            send(client_socket, message, strlen(message), 0);
+        }
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+bool check_existing_user(const char *username, const char *password, const int mode=0) {
+    /*
+     * int mode: if mode == 0: existence check
+     *              mode != 0: password check
+     */
+    FILE *file = fopen(ACCOUNT_FILE, "r");
+    if (!file) {
+        perror("Failed to open account file");
+        return false;
+    }
+
+    pthread_mutex_lock(&mutex);
+    char stored_username[50] = {}, stored_password[50] = {};
+    while (fscanf(file, "%s %s", stored_username, stored_password) != EOF) {
+        if (strcmp(username, stored_username) == 0) {
+            if (mode == 0) {
+                fclose(file);
+                pthread_mutex_unlock(&mutex);
+                return true;
+            }
+
+            // password check
+            if (strcmp(password, stored_password) == 0) {
+                fclose(file);
+                pthread_mutex_unlock(&mutex);
+                return true;
+            }
+
+            fclose(file);
+            pthread_mutex_unlock(&mutex);
+            return false;
+        }
+    }
+
+    fclose(file);
+    pthread_mutex_unlock(&mutex);
+    return false;
+}
+
+void register_user(const char *username, const char *password) {
+    FILE *file = fopen(ACCOUNT_FILE, "a");
+    if (!file) {
+        perror("Failed to open account file");
+        return;
+    }
+
+    pthread_mutex_lock(&mutex);
+    fprintf(file, "%s %s\n", username, password);
+    pthread_mutex_unlock(&mutex);
+
+    fclose(file);
+}
+
 void *handle_client(void *arg) {
+    const int client_sock = *static_cast<int *>(arg);
+    char buffer[BUFFER_SIZE] = {};
+    char username[50] = {}, password[50] = {};
+
+    while (true) {
+        memset(buffer, 0, BUFFER_SIZE);
+        // Receive REGISTER, LOGIN messages
+        recv(client_sock, buffer, BUFFER_SIZE, 0);
+
+        if (strncmp(buffer, "REGISTER", 8) == 0) {
+            // sscanf the string following REGISTER
+            sscanf(buffer + 9, "%s %s", username, password);
+            if (check_existing_user(username, password)) {
+                send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
+                continue;
+            }
+
+            register_user(username, password);
+            send(client_sock, REPLY_REGISTRATION_SUCCEED, strlen(REPLY_REGISTRATION_SUCCEED), 0);
+        } else if (strncmp(buffer, "LOGIN", 5) == 0) {
+            sscanf(buffer + 9, "%s %s", username, password);
+
+            if (!check_existing_user(username, password, 1)) {
+                send(client_sock, REPLY_USER_NOT_EXISTED, strlen(REPLY_USER_NOT_EXISTED), 0);
+                continue;
+            }
+
+            send(client_sock, REPLY_LOGIN_SUCCEED, strlen(REPLY_LOGIN_SUCCEED), 0);
+            break;
+        }
+    }
+
+    while (true) {
+        // Broadcast message on any user pushing to server
+        memset(buffer, 0, BUFFER_SIZE);
+        recv(client_sock, buffer, BUFFER_SIZE, 0);
+        printf("%s: %s", username, buffer);
+        broadcast_message(buffer, client_sock);
+    }
 
     return nullptr;
 }
@@ -27,10 +128,6 @@ int main(const int argc, char *argv[]) {
         return -1;
     }
 
-    int client_sock;
-    sockaddr_in server_addr = {}, client_addr = {};
-    socklen_t client_len = sizeof(client_addr);
-
     // Init server sock
     const int server_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (server_sock == -1) {
@@ -39,6 +136,7 @@ int main(const int argc, char *argv[]) {
     }
 
     // Set up server address
+    sockaddr_in server_addr = {};
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(atoi(argv[1]));
@@ -58,6 +156,9 @@ int main(const int argc, char *argv[]) {
     pthread_t threads[MAX_CLIENTS];
     int thread_index = 0;
 
+    int client_sock;
+    sockaddr_in client_addr = {};
+    socklen_t client_len = sizeof(client_addr);
     // Loop
     while (true) {
         // New client sock
@@ -81,7 +182,7 @@ int main(const int argc, char *argv[]) {
 
         // Server full check
         if (!added) {
-            send(client_sock, REPLY_SERVER_FULL, 12, 0);
+            send(client_sock, REPLY_SERVER_FULL, strlen(REPLY_SERVER_FULL), 0);
             close(client_sock);
             continue;
         }
