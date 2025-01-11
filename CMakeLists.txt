@@ -10,9 +10,4 @@ add_executable(auth _client/client.cpp
         _server/server_helpers.h
         _server/auth.cpp
         _server/auth.h
-        _client/structs.h
-        _client/defs.h
-        _client/common.h
-        _client/init.cpp
-        _client/init.h
 )

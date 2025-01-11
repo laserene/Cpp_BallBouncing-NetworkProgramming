@@ -4,15 +4,11 @@
 #include "unistd.h"
 #include "arpa/inet.h"
 
-#include "init.h"
-
 #define BUFFER_SIZE 1024
 
 void handle_communication(const int sock) {
     char buffer[BUFFER_SIZE] = {};
     fd_set read_fds; // File descriptors, each represent a socket
-
-    initSDL();
 
     while (true) {
         FD_ZERO(&read_fds);
@@ -24,15 +20,13 @@ void handle_communication(const int sock) {
             break;
         }
 
-        // if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-        //     memset(buffer, 0, BUFFER_SIZE);
-        //     if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
-        //         break;
-        //     }
-        //     send(sock, buffer, strlen(buffer), 0);
-        // }
-
-
+        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+            memset(buffer, 0, BUFFER_SIZE);
+            if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
+                break;
+            }
+            send(sock, buffer, strlen(buffer), 0);
+        }
 
         if (FD_ISSET(sock, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
