@@ -8,4 +8,6 @@ add_executable(auth _client/client.cpp
         _server/messages.h
         _server/server_helpers.cpp
         _server/server_helpers.h
+        _server/auth.cpp
+        _server/auth.h
 )
