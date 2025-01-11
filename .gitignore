@@ -1,2 +1,5 @@
 cmake-build-debug/
 CMakeLists.txt
+*.o
+client
+server

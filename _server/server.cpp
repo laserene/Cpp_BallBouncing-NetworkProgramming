@@ -1,11 +1,13 @@
 #include "cstdio"
 #include "cstdlib"
-#include "messages.h"
 #include "cstring"
 #include "unistd.h"
 #include "pthread.h"
 #include "arpa/inet.h"
 #include "sys/socket.h"
+
+#include "server_helpers.h"
+#include "messages.h"
 
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
@@ -15,9 +17,10 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int client_sockets[MAX_CLIENTS] = {};
 
+
 void broadcast_message(const char *message, const int sender_sock) {
     pthread_mutex_lock(&mutex);
-    for (const int client_socket : client_sockets) {
+    for (const int client_socket: client_sockets) {
         if (client_socket != 0 && client_socket != sender_sock) {
             send(client_socket, message, strlen(message), 0);
         }
@@ -25,10 +28,11 @@ void broadcast_message(const char *message, const int sender_sock) {
     pthread_mutex_unlock(&mutex);
 }
 
-bool check_existing_user(const char *username, const char *password, const int mode=0) {
+int check_existing_user(const char *username, const char *password) {
     /*
-     * int mode: if mode == 0: existence check
-     *              mode != 0: password check
+     * Return: 0 if user not existed
+     *         1 if wrong password
+     *         2 if a user matched
      */
     FILE *file = fopen(ACCOUNT_FILE, "r");
     if (!file) {
@@ -40,28 +44,22 @@ bool check_existing_user(const char *username, const char *password, const int m
     char stored_username[50] = {}, stored_password[50] = {};
     while (fscanf(file, "%s %s", stored_username, stored_password) != EOF) {
         if (strcmp(username, stored_username) == 0) {
-            if (mode == 0) {
-                fclose(file);
-                pthread_mutex_unlock(&mutex);
-                return true;
-            }
-
             // password check
-            if (strcmp(password, stored_password) == 0) {
+            if (strcmp(password, stored_password) != 0) {
                 fclose(file);
                 pthread_mutex_unlock(&mutex);
-                return true;
+                return 1;
             }
 
             fclose(file);
             pthread_mutex_unlock(&mutex);
-            return false;
+            return 2;
         }
     }
 
     fclose(file);
     pthread_mutex_unlock(&mutex);
-    return false;
+    return 0;
 }
 
 void register_user(const char *username, const char *password) {
@@ -71,8 +69,10 @@ void register_user(const char *username, const char *password) {
         return;
     }
 
+    const int client_id = getRandomNumber();
     pthread_mutex_lock(&mutex);
-    fprintf(file, "%s %s\n", username, password);
+    // FORMAT: username password client_id
+    fprintf(file, "%s %s %d\n", username, password, client_id);
     pthread_mutex_unlock(&mutex);
 
     fclose(file);
@@ -82,6 +82,7 @@ void *handle_client(void *arg) {
     const int client_sock = *static_cast<int *>(arg);
     char buffer[BUFFER_SIZE] = {};
     char username[50] = {}, password[50] = {};
+    int client_id;
 
     while (true) {
         memset(buffer, 0, BUFFER_SIZE);
@@ -91,7 +92,7 @@ void *handle_client(void *arg) {
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
             sscanf(buffer + 9, "%s %s", username, password);
-            if (check_existing_user(username, password)) {
+            if (check_existing_user(username, password) != 0) {
                 send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
                 continue;
             }
@@ -99,10 +100,17 @@ void *handle_client(void *arg) {
             register_user(username, password);
             send(client_sock, REPLY_REGISTRATION_SUCCEED, strlen(REPLY_REGISTRATION_SUCCEED), 0);
         } else if (strncmp(buffer, "LOGIN", 5) == 0) {
-            sscanf(buffer + 9, "%s %s", username, password);
+            sscanf(buffer + 6, "%s %s", username, password);
 
-            if (!check_existing_user(username, password, 1)) {
+            // user not found
+            if (check_existing_user(username, password) == 0) {
                 send(client_sock, REPLY_USER_NOT_EXISTED, strlen(REPLY_USER_NOT_EXISTED), 0);
+                continue;
+            }
+
+            // wrong password
+            if (check_existing_user(username, password) == 1) {
+                send(client_sock, REPLY_USER_CREDENTIALS_NOT_MATCHED, strlen(REPLY_USER_CREDENTIALS_NOT_MATCHED), 0);
                 continue;
             }
 
@@ -171,7 +179,7 @@ int main(const int argc, char *argv[]) {
         // Add new client to client list
         pthread_mutex_lock(&mutex);
         int added = 0;
-        for (int &client_socket : client_sockets) {
+        for (int &client_socket: client_sockets) {
             if (client_socket == 0) {
                 client_socket = client_sock;
                 added = 1;
