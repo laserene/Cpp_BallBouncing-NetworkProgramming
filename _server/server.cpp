@@ -28,7 +28,7 @@ void broadcast_message(const char *message, const int sender_sock) {
     pthread_mutex_unlock(&mutex);
 }
 
-int check_existing_user(const char *username, const char *password) {
+int check_existing_user(const char *username, const char *password, int *client_id) {
     /*
      * Return: 0 if user not existed
      *         1 if wrong password
@@ -42,7 +42,7 @@ int check_existing_user(const char *username, const char *password) {
 
     pthread_mutex_lock(&mutex);
     char stored_username[50] = {}, stored_password[50] = {};
-    while (fscanf(file, "%s %s", stored_username, stored_password) != EOF) {
+    while (fscanf(file, "%s %s %d", stored_username, stored_password, client_id) != EOF) {
         if (strcmp(username, stored_username) == 0) {
             // password check
             if (strcmp(password, stored_password) != 0) {
@@ -92,7 +92,7 @@ void *handle_client(void *arg) {
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
             sscanf(buffer + 9, "%s %s", username, password);
-            if (check_existing_user(username, password) != 0) {
+            if (check_existing_user(username, password, &client_id) != 0) {
                 send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
                 continue;
             }
@@ -103,13 +103,13 @@ void *handle_client(void *arg) {
             sscanf(buffer + 6, "%s %s", username, password);
 
             // user not found
-            if (check_existing_user(username, password) == 0) {
+            if (check_existing_user(username, password, &client_id) == 0) {
                 send(client_sock, REPLY_USER_NOT_EXISTED, strlen(REPLY_USER_NOT_EXISTED), 0);
                 continue;
             }
 
             // wrong password
-            if (check_existing_user(username, password) == 1) {
+            if (check_existing_user(username, password, &client_id) == 1) {
                 send(client_sock, REPLY_USER_CREDENTIALS_NOT_MATCHED, strlen(REPLY_USER_CREDENTIALS_NOT_MATCHED), 0);
                 continue;
             }
@@ -123,7 +123,7 @@ void *handle_client(void *arg) {
         // Broadcast message on any user pushing to server
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
-        printf("%s: %s", username, buffer);
+        printf("%s %d: %s", username, client_id, buffer);
         broadcast_message(buffer, client_sock);
     }
 
