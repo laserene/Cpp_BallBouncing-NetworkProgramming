@@ -20,13 +20,15 @@ void handle_communication(const int sock) {
             break;
         }
 
-        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
-                break;
-            }
-            send(sock, buffer, strlen(buffer), 0);
-        }
+        // if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+        //     memset(buffer, 0, BUFFER_SIZE);
+        //     if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
+        //         break;
+        //     }
+        //     send(sock, buffer, strlen(buffer), 0);
+        // }
+
+
 
         if (FD_ISSET(sock, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);

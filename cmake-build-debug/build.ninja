@@ -73,6 +73,12 @@ build CMakeFiles/auth.dir/_server/auth.cpp.o: CXX_COMPILER__auth_unscanned_Debug
   OBJECT_DIR = CMakeFiles/auth.dir
   OBJECT_FILE_DIR = CMakeFiles/auth.dir/_server
 
+build CMakeFiles/auth.dir/_client/init.cpp.o: CXX_COMPILER__auth_unscanned_Debug /home/laserene/professionals/network_programming/auth/_client/init.cpp || cmake_object_order_depends_target_auth
+  DEP_FILE = CMakeFiles/auth.dir/_client/init.cpp.o.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/auth.dir
+  OBJECT_FILE_DIR = CMakeFiles/auth.dir/_client
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target auth
@@ -81,7 +87,7 @@ build CMakeFiles/auth.dir/_server/auth.cpp.o: CXX_COMPILER__auth_unscanned_Debug
 #############################################
 # Link the executable auth
 
-build auth: CXX_EXECUTABLE_LINKER__auth_Debug CMakeFiles/auth.dir/_client/client.cpp.o CMakeFiles/auth.dir/_server/server.cpp.o CMakeFiles/auth.dir/_server/server_helpers.cpp.o CMakeFiles/auth.dir/_server/auth.cpp.o
+build auth: CXX_EXECUTABLE_LINKER__auth_Debug CMakeFiles/auth.dir/_client/client.cpp.o CMakeFiles/auth.dir/_server/server.cpp.o CMakeFiles/auth.dir/_server/server_helpers.cpp.o CMakeFiles/auth.dir/_server/auth.cpp.o CMakeFiles/auth.dir/_client/init.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/auth.dir
   POST_BUILD = :
