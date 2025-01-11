@@ -3,7 +3,9 @@ project(auth)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(auth client.cpp
-        server.cpp
-        messages.h
+add_executable(auth _client/client.cpp
+        _server/server.cpp
+        _server/messages.h
+        _server/server_helpers.cpp
+        _server/server_helpers.h
 )

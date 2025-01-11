@@ -11,7 +11,7 @@
 
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
-#define ACCOUNT_FILE "accounts.txt"
+#define ACCOUNT_FILE "_server/accounts.txt"
 
 // Init mutex and array to store client sockets
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -37,7 +37,7 @@ int check_existing_user(const char *username, const char *password) {
     FILE *file = fopen(ACCOUNT_FILE, "r");
     if (!file) {
         perror("Failed to open account file");
-        return false;
+        return 0;
     }
 
     pthread_mutex_lock(&mutex);
