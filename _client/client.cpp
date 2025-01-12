@@ -38,10 +38,6 @@ void handle_communication(const int sock) {
     atexit(cleanup);
 
     while (true) {
-        FD_ZERO(&read_fds);
-        FD_SET(sock, &read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-
         prepareScene();
         doInput();
 
@@ -49,7 +45,7 @@ void handle_communication(const int sock) {
             player.y -= 4;
 
             memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), "MOVE 1 0 0 0");
+            snprintf(buffer, sizeof(buffer), "MOVE UP");
             send(sock, buffer, strlen(buffer), 0);
         }
 
@@ -65,27 +61,7 @@ void handle_communication(const int sock) {
             player.x += 4;
         }
 
-        if (select(sock + 1, &read_fds, nullptr, nullptr, &timeout) < 0) {
-            printf("Select error\n");
-            break;
-        }
 
-        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
-                break;
-            }
-            send(sock, buffer, strlen(buffer), 0);
-        }
-
-        if (FD_ISSET(sock, &read_fds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            if (const size_t bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
-                printf("Disconnected from server\n");
-                break;
-            }
-            printf("%s", buffer);
-        }
 
         blit(player.texture, player.x, player.y);
 
