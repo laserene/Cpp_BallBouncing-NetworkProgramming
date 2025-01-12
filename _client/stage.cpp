@@ -217,6 +217,7 @@ static void spawnEnemies() {
 
         enemy->x = SCREEN_WIDTH;
         enemy->y = rand() % SCREEN_HEIGHT;
+        enemy->health = 1;
         enemy->texture = enemyTexture;
         enemy->side = SIDE_ALIEN;
         SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);

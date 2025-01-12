@@ -15,7 +15,7 @@ client: client.o input.o init.o draw.o stage.o util.o
 	$(CC) $(CFLAGS) -o client client.o input.o init.o draw.o stage.o util.o $(LDFLAGS)
 
 # Object Files
-server.o: _server/server.cpp _server/auth.h
+server.o: _server/server.cpp _server/auth.h _server/defs.h
 	$(CC) $(CFLAGS) -c _server/server.cpp -o server.o
 
 client.o: _client/client.cpp

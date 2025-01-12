@@ -3,6 +3,6 @@
 
 #define BUFFER_SIZE 1024
 
-#define PLAYER_SPEED          4
+#define PLAYER_SPEED    6
 
 #endif //DEFS_H
