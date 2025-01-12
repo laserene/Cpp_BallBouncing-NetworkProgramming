@@ -58,10 +58,8 @@ void *handle_client(void *arg) {
         // Broadcast message on any user pushing to server
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
-        printf("%s %d: %s", username, client_id, buffer);
         std::cout << buffer << std::endl;
         if (strncmp(buffer, "MOVE", 4) == 0) {
-            std::cout << buffer << std::endl;
             strcpy(buffer, handle_move_message(buffer));
             send(client_id, buffer, strlen(buffer), 0);
         }

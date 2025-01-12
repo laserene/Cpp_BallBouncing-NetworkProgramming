@@ -10,6 +10,7 @@
 #include "draw.h"
 #include "init.h"
 #include "input.h"
+#include "messages.h"
 #include "client.h"
 
 #define BUFFER_SIZE 1024
@@ -54,20 +55,29 @@ void handle_communication(const int sock) {
         if (app.up) {
             player.y -= 4;
             memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), "MOVE UP");
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
             send(sock, buffer, strlen(buffer), 0);
         }
 
         if (app.down) {
             player.y += 4;
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
+            send(sock, buffer, strlen(buffer), 0);
         }
 
         if (app.left) {
             player.x -= 4;
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
+            send(sock, buffer, strlen(buffer), 0);
         }
 
         if (app.right) {
             player.x += 4;
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
+            send(sock, buffer, strlen(buffer), 0);
         }
 
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
