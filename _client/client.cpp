@@ -18,6 +18,17 @@
 App app;
 Entity player;
 
+void handle_server_message(const char *buffer) {
+    if (strncmp(buffer, "UPDATE", 6) == 0) {
+        int u, d, l, r;
+        sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
+        player.y += u;
+        player.y += d;
+        player.x += l;
+        player.x += r;
+    }
+}
+
 void handle_communication(const int sock) {
     // Socket handler
     char buffer[BUFFER_SIZE] = {};
@@ -53,28 +64,24 @@ void handle_communication(const int sock) {
         doInput();
 
         if (app.up) {
-            player.y -= 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.down) {
-            player.y += 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.left) {
-            player.x -= 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.right) {
-            player.x += 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
             send(sock, buffer, strlen(buffer), 0);
@@ -94,7 +101,7 @@ void handle_communication(const int sock) {
                 printf("Disconnected from server\n");
                 break;
             }
-            printf("%s", buffer);
+            handle_server_message(buffer);
         }
 
         blit(player.texture, player.x, player.y);
