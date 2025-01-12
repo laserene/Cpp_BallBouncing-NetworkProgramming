@@ -73,8 +73,11 @@ void handle_server_message(const char *buffer) {
         sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
         player->dy += u;
         player->dy += d;
-        player->dy += l;
-        player->dy += r;
+        player->dx += l;
+        player->dx += r;
+
+        player->x += player->dx;
+        player->y += player->dy;
     } else {
         std::cout << buffer << std::endl;
     }
@@ -115,9 +118,6 @@ static void doPlayer(const int sock) {
     if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
         fireBullet();
     }
-
-    player->x += player->dx;
-    player->y += player->dy;
 }
 
 static void fireBullet() {
