@@ -22,6 +22,8 @@ static void doPlayer(int sock);
 
 static void doFighters();
 
+static void doEnemies();
+
 static void doBullets();
 
 static int bulletHitFighter(Entity *b);
@@ -32,10 +34,19 @@ static void drawBullets();
 
 static void spawnEnemies();
 
+static void fireAlienBullet(Entity *e);
+
+static void clipPlayer();
+
+static void resetStage();
+
 static Entity *player;
+static SDL_Texture *playerTexture;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *enemyTexture;
+static SDL_Texture *enemyBulletTexture;
 static int enemySpawnTimer;
+static int stageResetTimer;
 
 void initStage() {
     app.delegate.logic = logic;
@@ -45,10 +56,36 @@ void initStage() {
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
 
-    initPlayer();
+    playerTexture = loadTexture(PLAYER_TEXTURE);
     bulletTexture = loadTexture(BULLET_TEXTURE);
     enemyTexture = loadTexture(ENEMY_TEXTURE);
+    enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
+
+    resetStage();
+}
+
+static void resetStage() {
+    Entity *e;
+
+    while (stage.fighterHead.next) {
+        e = stage.fighterHead.next;
+        stage.fighterHead.next = e->next;
+        free(e);
+    }
+
+    while (stage.bulletHead.next) {
+        e = stage.bulletHead.next;
+        stage.bulletHead.next = e->next;
+        free(e);
+    }
+
+    memset(&stage, 0, sizeof(Stage));
+    stage.fighterTail = &stage.fighterHead;
+    stage.bulletTail = &stage.bulletHead;
+
+    initPlayer();
     enemySpawnTimer = 0;
+    stageResetTimer = FPS * 2;
 }
 
 static void initPlayer() {
@@ -59,13 +96,15 @@ static void initPlayer() {
 
     player->x = 100;
     player->y = 100;
+    player->health = 3;
     player->side = SIDE_PLAYER;
-    player->texture = loadTexture(PLAYER_TEXTURE);
+    player->texture = playerTexture;
     SDL_QueryTexture(player->texture, nullptr, nullptr, &player->w, &player->h);
 }
 
 static void logic(const int sock, const fd_set &read_fds) {
     doPlayer(sock);
+    doEnemies();
     doFighters();
     doBullets();
     spawnEnemies();
@@ -78,6 +117,11 @@ static void logic(const int sock, const fd_set &read_fds) {
             exit(-1);
         }
         handle_server_message(buffer);
+    }
+
+    clipPlayer();
+    if (player == nullptr && --stageResetTimer <= 0) {
+        resetStage();
     }
 }
 
@@ -98,39 +142,41 @@ void handle_server_message(const char *buffer) {
 }
 
 static void doPlayer(const int sock) {
-    player->dx = player->dy = 0;
+    if (player != nullptr) {
+        player->dx = player->dy = 0;
 
-    if (player->reload > 0) {
-        player->reload--;
-    }
+        if (player->reload > 0) {
+            player->reload--;
+        }
 
-    char buffer[BUFFER_SIZE] = {};
-    if (app.keyboard[SDL_SCANCODE_UP]) {
-        memset(buffer, 0, BUFFER_SIZE);
-        snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
-        send(sock, buffer, BUFFER_SIZE, 0);
-    }
+        char buffer[BUFFER_SIZE] = {};
+        if (app.keyboard[SDL_SCANCODE_UP]) {
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
+        }
 
-    if (app.keyboard[SDL_SCANCODE_DOWN]) {
-        memset(buffer, 0, BUFFER_SIZE);
-        snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
-        send(sock, buffer, BUFFER_SIZE, 0);
-    }
+        if (app.keyboard[SDL_SCANCODE_DOWN]) {
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
+        }
 
-    if (app.keyboard[SDL_SCANCODE_LEFT]) {
-        memset(buffer, 0, BUFFER_SIZE);
-        snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
-        send(sock, buffer, BUFFER_SIZE, 0);
-    }
+        if (app.keyboard[SDL_SCANCODE_LEFT]) {
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
+        }
 
-    if (app.keyboard[SDL_SCANCODE_RIGHT]) {
-        memset(buffer, 0, BUFFER_SIZE);
-        snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
-        send(sock, buffer, strlen(buffer), 0);
-    }
+        if (app.keyboard[SDL_SCANCODE_RIGHT]) {
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
+            send(sock, buffer, strlen(buffer), 0);
+        }
 
-    if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
-        fireBullet();
+        if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
+            fireBullet();
+        }
     }
 }
 
@@ -141,7 +187,15 @@ static void doFighters() {
         e->x += e->dx;
         e->y += e->dy;
 
-        if (e != player && (e->x < -e->w || e->health == 0)) {
+        if (e != player && e->x < -e->w) {
+            e->health = 0;
+        }
+
+        if (e->health == 0) {
+            if (e == player) {
+                player = nullptr;
+            }
+
             if (e == stage.fighterTail) {
                 stage.fighterTail = prev;
             }
@@ -152,6 +206,14 @@ static void doFighters() {
         }
 
         prev = e;
+    }
+}
+
+static void doEnemies() {
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        if (e != player && player != nullptr && --e->reload <= 0) {
+            fireAlienBullet(e);
+        }
     }
 }
 
@@ -181,7 +243,7 @@ static void doBullets() {
         b->x += b->dx;
         b->y += b->dy;
 
-        if (bulletHitFighter(b) || b->x > SCREEN_WIDTH) {
+        if (bulletHitFighter(b) || b->x < -b->w || b->y < -b->h || b->x > SCREEN_WIDTH || b->y > SCREEN_HEIGHT) {
             if (b == stage.bulletTail) {
                 stage.bulletTail = prev;
             }
@@ -208,6 +270,30 @@ static int bulletHitFighter(Entity *b) {
     return 0;
 }
 
+static void fireAlienBullet(Entity *e) {
+    auto *bullet = static_cast<Entity *>(malloc(sizeof(Entity)));
+    memset(bullet, 0, sizeof(Entity));
+    stage.bulletTail->next = bullet;
+    stage.bulletTail = bullet;
+
+    bullet->x = e->x;
+    bullet->y = e->y;
+    bullet->health = 1;
+    bullet->texture = enemyBulletTexture;
+    bullet->side = SIDE_ALIEN;
+    SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
+
+    bullet->x += (e->w / 2) - (bullet->w / 2);
+    bullet->y += (e->h / 2) - (bullet->h / 2);
+
+    calcSlope(player->x + (player->w / 2), player->y + (player->h / 2), e->x, e->y, &bullet->dx, &bullet->dy);
+
+    bullet->dx *= ALIEN_BULLET_SPEED;
+    bullet->dy *= ALIEN_BULLET_SPEED;
+
+    e->reload = (rand() % FPS * 2);
+}
+
 static void spawnEnemies() {
     if (--enemySpawnTimer <= 0) {
         auto *enemy = static_cast<Entity *>(malloc(sizeof(Entity)));
@@ -223,8 +309,28 @@ static void spawnEnemies() {
         SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
 
         enemy->dx = -(2 + (rand() % 4));
-
+        enemy->reload = FPS * (1 + (rand() % 3));
         enemySpawnTimer = 30 + (rand() % 60);
+    }
+}
+
+static void clipPlayer() {
+    if (player != nullptr) {
+        if (player->x < 0) {
+            player->x = 0;
+        }
+
+        if (player->y < 0) {
+            player->y = 0;
+        }
+
+        if (player->x > SCREEN_WIDTH / 2) {
+            player->x = SCREEN_WIDTH / 2;
+        }
+
+        if (player->y > SCREEN_HEIGHT - player->h) {
+            player->y = SCREEN_HEIGHT - player->h;
+        }
     }
 }
 

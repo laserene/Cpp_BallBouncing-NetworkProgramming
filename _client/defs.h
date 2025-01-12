@@ -1,6 +1,8 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#define FPS 60
+
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -15,5 +17,7 @@
 
 #define SIDE_PLAYER 0
 #define SIDE_ALIEN  1
+
+#define ALIEN_BULLET_SPEED    8
 
 #endif //DEFS_H
