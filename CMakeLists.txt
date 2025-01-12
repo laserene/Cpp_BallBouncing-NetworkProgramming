@@ -22,4 +22,6 @@ add_executable(auth _client/client.cpp
         _client/input.h
         _client/client.h
         _client/paths.h
+        _server/handle_client_message.cpp
+        _server/handle_client_message.h
 )
