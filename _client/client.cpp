@@ -2,6 +2,7 @@
 #include "cstdlib"
 #include "cstring"
 #include "iostream"
+#include "fcntl.h"
 #include "unistd.h"
 #include "arpa/inet.h"
 
@@ -42,7 +43,10 @@ void handle_communication(const int sock) {
         FD_SET(sock, &read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
 
-        select(sock + 1, &read_fds, nullptr, nullptr, &timeout);
+        if (select(sock + 1, &read_fds, nullptr, nullptr, &timeout) < 0) {
+            perror("Select error");
+            break;
+        }
 
         prepareScene();
         doInput();
@@ -66,10 +70,21 @@ void handle_communication(const int sock) {
             player.x += 4;
         }
 
-        memset(buffer, 0, BUFFER_SIZE);
-        if (const size_t bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
-            printf("Disconnected from server\n");
-            break;
+        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+            memset(buffer, 0, BUFFER_SIZE);
+            if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
+                break;
+            }
+            send(sock, buffer, strlen(buffer), 0);
+        }
+
+        if (FD_ISSET(sock, &read_fds)) {
+            memset(buffer, 0, BUFFER_SIZE);
+            if (const int bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
+                printf("Disconnected from server\n");
+                break;
+            }
+            printf("%s", buffer);
         }
 
         blit(player.texture, player.x, player.y);
@@ -98,6 +113,9 @@ int main(const int argc, char *argv[]) {
         perror("Connection failed!");
         return 1;
     }
+
+    // Non-blocking socket
+    fcntl(sock, F_SETFL, O_NONBLOCK);
 
     printf("Connected to the server.\n");
     handle_communication(sock);
