@@ -22,8 +22,8 @@ void handle_communication(const int sock) {
 
     // Select timeout
     timeval timeout = {};
-    timeout.tv_sec = 0;  // 0 seconds
-    timeout.tv_usec = 16000;
+    timeout.tv_sec = 0; // 0 seconds
+    timeout.tv_usec = 16000 * 8;
 
     // App handler
     memset(&app, 0, sizeof(App));
@@ -44,6 +44,26 @@ void handle_communication(const int sock) {
 
         prepareScene();
         doInput();
+
+        if (app.up) {
+            player.y -= 4;
+
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), "MOVE 1 0 0 0");
+            send(sock, buffer, strlen(buffer), 0);
+        }
+
+        if (app.down) {
+            player.y += 4;
+        }
+
+        if (app.left) {
+            player.x -= 4;
+        }
+
+        if (app.right) {
+            player.x += 4;
+        }
 
         if (select(sock + 1, &read_fds, nullptr, nullptr, &timeout) < 0) {
             printf("Select error\n");
