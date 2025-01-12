@@ -56,21 +56,21 @@ void handle_communication(const int sock) {
             player.y -= 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
-            send(sock, buffer, strlen(buffer), 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.down) {
             player.y += 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
-            send(sock, buffer, strlen(buffer), 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.left) {
             player.x -= 4;
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
-            send(sock, buffer, strlen(buffer), 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (app.right) {
@@ -85,7 +85,7 @@ void handle_communication(const int sock) {
             if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
                 break;
             }
-            send(sock, buffer, strlen(buffer), 0);
+            send(sock, buffer, BUFFER_SIZE, 0);
         }
 
         if (FD_ISSET(sock, &read_fds)) {

@@ -10,8 +10,7 @@
 #include "auth.h"
 #include "messages.h"
 #include "handle_client_message.h"
-
-#define BUFFER_SIZE 1024
+#include "defs.h"
 
 void *handle_client(void *arg) {
     const int client_sock = *static_cast<int *>(arg);
@@ -61,7 +60,7 @@ void *handle_client(void *arg) {
         std::cout << buffer << std::endl;
         if (strncmp(buffer, "MOVE", 4) == 0) {
             strcpy(buffer, handle_move_message(buffer));
-            send(client_id, buffer, strlen(buffer), 0);
+            send(client_sock, buffer, strlen(buffer), 0);
         }
     }
 
