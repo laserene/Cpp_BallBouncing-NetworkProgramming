@@ -17,6 +17,7 @@
 
 App app;
 Entity player;
+Entity bullet;
 
 void handle_server_message(const char *buffer) {
     if (strncmp(buffer, "UPDATE", 6) == 0) {
@@ -36,19 +37,24 @@ void handle_communication(const int sock) {
     char buffer[BUFFER_SIZE] = {};
     fd_set read_fds = {};
 
+    // Timeout for select
     timeval timeout = {};
     timeout.tv_sec = 0; // 0 seconds
     timeout.tv_usec = 16000;
 
-    // App handler
+    // Reset game components
     memset(&app, 0, sizeof(App));
     memset(&player, 0, sizeof(Entity));
+    memset(&bullet, 0, sizeof(Entity));
 
+    // Init SDL
     initSDL();
 
+    // Initial components setting
     player.x = 100;
     player.y = 100;
     player.texture = loadTexture(PLAYER_TEXTURE);
+    bullet.texture = loadTexture(BULLET_TEXTURE);
 
     atexit(cleanup);
 
@@ -65,6 +71,7 @@ void handle_communication(const int sock) {
         prepareScene();
         doInput();
 
+        // Handle character movement
         if (app.up) {
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
@@ -89,6 +96,23 @@ void handle_communication(const int sock) {
             send(sock, buffer, strlen(buffer), 0);
         }
 
+        // Fire another bullet once bullet is out of screen
+        if (app.fire && bullet.health == 0) {
+            bullet.x = player.x;
+            bullet.y = player.y;
+            bullet.dx = 16;
+            bullet.dy = 0;
+            bullet.health = 1;
+        }
+
+        // Update bullet movement
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+
+        if (bullet.x > SCREEN_WIDTH) {
+            bullet.health = 0;
+        }
+
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
             if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
@@ -107,6 +131,10 @@ void handle_communication(const int sock) {
         }
 
         blit(player.texture, player.x, player.y);
+
+        if (bullet.health > 0) {
+            blit(bullet.texture, bullet.x, bullet.y);
+        }
 
         presentScene();
         SDL_Delay(16);

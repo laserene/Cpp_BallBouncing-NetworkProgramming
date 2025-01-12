@@ -42,6 +42,10 @@ void doKeyDown(const SDL_KeyboardEvent *event) {
         if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
             app.right = 1;
         }
+
+        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
+            app.fire = 1;
+        }
     }
 }
 
@@ -61,6 +65,10 @@ void doKeyUp(const SDL_KeyboardEvent *event) {
 
         if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
             app.right = 0;
+        }
+
+        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
+            app.fire = 0;
         }
     }
 }

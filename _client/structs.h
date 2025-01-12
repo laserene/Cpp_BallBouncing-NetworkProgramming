@@ -10,11 +10,15 @@ typedef struct {
     int down;
     int left;
     int right;
+    int fire;
 } App;
 
 typedef struct {
     int x;
     int y;
+    int dx;
+    int dy;
+    int health;
     SDL_Texture *texture;
 } Entity;
 
