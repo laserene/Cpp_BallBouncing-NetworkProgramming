@@ -3,11 +3,13 @@
 #include "cstring"
 #include "unistd.h"
 #include "pthread.h"
+#include "iostream"
 #include "arpa/inet.h"
 #include "sys/socket.h"
 
 #include "auth.h"
 #include "messages.h"
+#include "handle_client_message.h"
 
 #define BUFFER_SIZE 1024
 
@@ -24,7 +26,7 @@ void *handle_client(void *arg) {
 
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
-            sscanf(buffer + 9, "%s %s", username, password);
+                sscanf(buffer + 9, "%s %s", username, password);
             if (check_existing_user(username, password, &client_id) != 0) {
                 send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
                 continue;
@@ -57,7 +59,12 @@ void *handle_client(void *arg) {
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
         printf("%s %d: %s", username, client_id, buffer);
-        broadcast_message(buffer, client_sock);
+        std::cout << buffer << std::endl;
+        if (strncmp(buffer, "MOVE", 4) == 0) {
+            std::cout << buffer << std::endl;
+            strcpy(buffer, handle_move_message(buffer));
+            send(client_id, buffer, strlen(buffer), 0);
+        }
     }
 
     return nullptr;

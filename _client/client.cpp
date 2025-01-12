@@ -1,6 +1,7 @@
 #include "cstdio"
 #include "cstdlib"
 #include "cstring"
+#include "iostream"
 #include "unistd.h"
 #include "arpa/inet.h"
 
@@ -18,12 +19,11 @@ Entity player;
 void handle_communication(const int sock) {
     // Socket handler
     char buffer[BUFFER_SIZE] = {};
-    fd_set read_fds; // File descriptors, each represent a socket
+    fd_set read_fds = {};
 
-    // Select timeout
     timeval timeout = {};
     timeout.tv_sec = 0; // 0 seconds
-    timeout.tv_usec = 16000 * 8;
+    timeout.tv_usec = 16000;
 
     // App handler
     memset(&app, 0, sizeof(App));
@@ -38,12 +38,17 @@ void handle_communication(const int sock) {
     atexit(cleanup);
 
     while (true) {
+        FD_ZERO(&read_fds);
+        FD_SET(sock, &read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
+
+        select(sock + 1, &read_fds, nullptr, nullptr, &timeout);
+
         prepareScene();
         doInput();
 
         if (app.up) {
             player.y -= 4;
-
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(buffer, sizeof(buffer), "MOVE UP");
             send(sock, buffer, strlen(buffer), 0);
@@ -61,7 +66,11 @@ void handle_communication(const int sock) {
             player.x += 4;
         }
 
-
+        memset(buffer, 0, BUFFER_SIZE);
+        if (const size_t bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
+            printf("Disconnected from server\n");
+            break;
+        }
 
         blit(player.texture, player.x, player.y);
 

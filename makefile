@@ -7,8 +7,8 @@ LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
 all: server client
 
 # Server Target
-server: server.o auth.o server_helpers.o
-	$(CC) $(CFLAGS) -o server server.o auth.o server_helpers.o
+server: server.o auth.o server_helpers.o handle_client_message.o
+	$(CC) $(CFLAGS) -o server server.o auth.o server_helpers.o handle_client_message.o
 
 # Client Target
 client: client.o input.o init.o draw.o
@@ -20,6 +20,9 @@ server.o: _server/server.cpp _server/auth.h
 
 client.o: _client/client.cpp
 	$(CC) $(CFLAGS) -c _client/client.cpp -o client.o $(LDFLAGS)
+
+handle_client_message.o: _server/handle_client_message.cpp _server/handle_client_message.h
+	$(CC) $(CFLAGS) -c _server/handle_client_message.cpp -o handle_client_message.o
 
 server_helpers.o: _server/server_helpers.cpp _server/server_helpers.h
 	$(CC) $(CFLAGS) -c _server/server_helpers.cpp -o server_helpers.o
