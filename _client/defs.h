@@ -1,6 +1,8 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#define MAX_STARS   500
+
 #define FPS 60
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
