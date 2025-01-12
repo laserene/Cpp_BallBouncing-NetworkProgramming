@@ -26,6 +26,8 @@ void handle_server_message(const char *buffer) {
         player.y += d;
         player.x += l;
         player.x += r;
+    } else {
+        std::cout << buffer << std::endl;
     }
 }
 
