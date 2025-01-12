@@ -13,6 +13,7 @@
 #define BUFFER_SIZE 1024
 
 App app;
+Entity player;
 
 void handle_communication(const int sock) {
     // Socket handler
@@ -26,16 +27,23 @@ void handle_communication(const int sock) {
 
     // App handler
     memset(&app, 0, sizeof(App));
+    memset(&player, 0, sizeof(Entity));
+
     initSDL();
+
+    player.x = 100;
+    player.y = 100;
+    player.texture = loadTexture(PLAYER_TEXTURE);
+
     atexit(cleanup);
 
     while (true) {
-        prepareScene();
-        doInput();
-
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
+
+        prepareScene();
+        doInput();
 
         if (select(sock + 1, &read_fds, nullptr, nullptr, &timeout) < 0) {
             printf("Select error\n");
@@ -52,12 +60,14 @@ void handle_communication(const int sock) {
 
         if (FD_ISSET(sock, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
-            if (const int bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
+            if (const size_t bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
                 printf("Disconnected from server\n");
                 break;
             }
             printf("%s", buffer);
         }
+
+        blit(player.texture, player.x, player.y);
 
         presentScene();
         SDL_Delay(16);

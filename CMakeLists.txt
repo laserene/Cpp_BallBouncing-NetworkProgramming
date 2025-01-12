@@ -21,4 +21,5 @@ add_executable(auth _client/client.cpp
         _client/input.cpp
         _client/input.h
         _client/client.h
+        _client/paths.h
 )

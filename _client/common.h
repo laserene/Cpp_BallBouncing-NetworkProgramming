@@ -9,6 +9,7 @@
 #include "cstdlib"
 #include "cstring"
 
+#include "paths.h"
 #include "structs.h"
 #include "defs.h"
 
