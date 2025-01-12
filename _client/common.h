@@ -12,5 +12,6 @@
 #include "paths.h"
 #include "structs.h"
 #include "defs.h"
+#include "messages.h"
 
 #endif //COMMON_H

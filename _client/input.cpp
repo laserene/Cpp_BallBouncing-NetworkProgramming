@@ -25,50 +25,14 @@ void doInput() {
     }
 }
 
-void doKeyDown(const SDL_KeyboardEvent *event) {
-    if (event->repeat == 0) {
-        if (event->keysym.scancode == SDL_SCANCODE_UP) {
-            app.up = 1;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_DOWN) {
-            app.down = 1;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_LEFT) {
-            app.left = 1;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
-            app.right = 1;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
-            app.fire = 1;
-        }
+void doKeyUp(const SDL_KeyboardEvent *event) {
+    if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
+        app.keyboard[event->keysym.scancode] = 0;
     }
 }
 
-void doKeyUp(const SDL_KeyboardEvent *event) {
-    if (event->repeat == 0) {
-        if (event->keysym.scancode == SDL_SCANCODE_UP) {
-            app.up = 0;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_DOWN) {
-            app.down = 0;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_LEFT) {
-            app.left = 0;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_RIGHT) {
-            app.right = 0;
-        }
-
-        if (event->keysym.scancode == SDL_SCANCODE_LCTRL) {
-            app.fire = 0;
-        }
+void doKeyDown(const SDL_KeyboardEvent *event) {
+    if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
+        app.keyboard[event->keysym.scancode] = 1;
     }
 }

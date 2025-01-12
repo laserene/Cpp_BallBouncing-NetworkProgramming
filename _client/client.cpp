@@ -6,31 +6,15 @@
 #include "unistd.h"
 #include "arpa/inet.h"
 
+#include "stage.h"
 #include "common.h"
 #include "draw.h"
 #include "init.h"
 #include "input.h"
-#include "messages.h"
 #include "client.h"
 
-#define BUFFER_SIZE 1024
-
 App app;
-Entity player;
-Entity bullet;
-
-void handle_server_message(const char *buffer) {
-    if (strncmp(buffer, "UPDATE", 6) == 0) {
-        int u, d, l, r;
-        sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
-        player.y += u;
-        player.y += d;
-        player.x += l;
-        player.x += r;
-    } else {
-        std::cout << buffer << std::endl;
-    }
-}
+Stage stage;
 
 void handle_communication(const int sock) {
     // Socket handler
@@ -44,19 +28,15 @@ void handle_communication(const int sock) {
 
     // Reset game components
     memset(&app, 0, sizeof(App));
-    memset(&player, 0, sizeof(Entity));
-    memset(&bullet, 0, sizeof(Entity));
 
     // Init SDL
     initSDL();
 
-    // Initial components setting
-    player.x = 100;
-    player.y = 100;
-    player.texture = loadTexture(PLAYER_TEXTURE);
-    bullet.texture = loadTexture(BULLET_TEXTURE);
-
     atexit(cleanup);
+    initStage();
+
+    long then = SDL_GetTicks();
+    float remainder = 0;
 
     while (true) {
         FD_ZERO(&read_fds);
@@ -71,48 +51,6 @@ void handle_communication(const int sock) {
         prepareScene();
         doInput();
 
-        // Handle character movement
-        if (app.up) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
-        }
-
-        if (app.down) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
-        }
-
-        if (app.left) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
-        }
-
-        if (app.right) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
-            send(sock, buffer, strlen(buffer), 0);
-        }
-
-        // Fire another bullet once bullet is out of screen
-        if (app.fire && bullet.health == 0) {
-            bullet.x = player.x;
-            bullet.y = player.y;
-            bullet.dx = 16;
-            bullet.dy = 0;
-            bullet.health = 1;
-        }
-
-        // Update bullet movement
-        bullet.x += bullet.dx;
-        bullet.y += bullet.dy;
-
-        if (bullet.x > SCREEN_WIDTH) {
-            bullet.health = 0;
-        }
-
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
             if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
@@ -121,23 +59,12 @@ void handle_communication(const int sock) {
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
-        if (FD_ISSET(sock, &read_fds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            if (const int bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
-                printf("Disconnected from server\n");
-                break;
-            }
-            handle_server_message(buffer);
-        }
+        app.delegate.logic(sock, read_fds);
 
-        blit(player.texture, player.x, player.y);
-
-        if (bullet.health > 0) {
-            blit(bullet.texture, bullet.x, bullet.y);
-        }
+        app.delegate.draw();
 
         presentScene();
-        SDL_Delay(16);
+        capFrameRate(&then, &remainder);
     }
 }
 
@@ -168,4 +95,20 @@ int main(const int argc, char *argv[]) {
     handle_communication(sock);
     close(sock);
     return 0;
+}
+
+static void capFrameRate(long *then, float *remainder) {
+    // Set 60 FPS
+    long wait = 16 + *remainder;
+    *remainder -= static_cast<int>(*remainder);
+    const long frameTime = SDL_GetTicks() - *then;
+
+    wait -= frameTime;
+    if (wait < 1) {
+        wait = 1;
+    }
+
+    SDL_Delay(wait);
+    *remainder += 0.667;
+    *then = SDL_GetTicks();
 }
