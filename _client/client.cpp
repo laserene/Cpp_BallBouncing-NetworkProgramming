@@ -4,13 +4,30 @@
 #include "unistd.h"
 #include "arpa/inet.h"
 
+#include "common.h"
+#include "draw.h"
+#include "init.h"
+#include "input.h"
+#include "client.h"
+
 #define BUFFER_SIZE 1024
 
+App app;
+
 void handle_communication(const int sock) {
+    // Socket handler
     char buffer[BUFFER_SIZE] = {};
     fd_set read_fds; // File descriptors, each represent a socket
 
+    // App handler
+    memset(&app, 0, sizeof(App));
+    initSDL();
+    atexit(cleanup);
+
     while (true) {
+        prepareScene();
+        doInput();
+
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
@@ -36,6 +53,9 @@ void handle_communication(const int sock) {
             }
             printf("%s", buffer);
         }
+
+        presentScene();
+        SDL_Delay(16);
     }
 }
 
