@@ -1,5 +1,3 @@
-#include "SDL2/SDL.h"
-
 #include "init.h"
 #include "defs.h"
 #include "common.h"

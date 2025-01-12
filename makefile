@@ -1,6 +1,7 @@
 # Compiler and Flags
 CC = g++
 CFLAGS = -Wall -pthread
+LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
 
 # Targets
 all: server client
@@ -10,21 +11,30 @@ server: server.o auth.o server_helpers.o
 	$(CC) $(CFLAGS) -o server server.o auth.o server_helpers.o
 
 # Client Target
-client: client.o
-	$(CC) $(CFLAGS) -o client client.o
+client: client.o input.o init.o draw.o
+	$(CC) $(CFLAGS) -o client client.o input.o init.o draw.o $(LDFLAGS)
 
 # Object Files
 server.o: _server/server.cpp _server/auth.h
 	$(CC) $(CFLAGS) -c _server/server.cpp -o server.o
 
 client.o: _client/client.cpp
-	$(CC) $(CFLAGS) -c _client/client.cpp -o client.o
+	$(CC) $(CFLAGS) -c _client/client.cpp -o client.o $(LDFLAGS)
 
 server_helpers.o: _server/server_helpers.cpp _server/server_helpers.h
 	$(CC) $(CFLAGS) -c _server/server_helpers.cpp -o server_helpers.o
 
 auth.o: _server/auth.cpp _server/auth.h _server/server_helpers.h
 	$(CC) $(CFLAGS) -c _server/auth.cpp -o auth.o
+
+input.o: _client/input.cpp _client/input.h _client/common.h
+	$(CC) $(CFLAGS) -c _client/input.cpp -o input.o $(LDFLAGS)
+
+init.o: _client/init.cpp _client/init.h _client/common.h _client/defs.h
+	$(CC) $(CFLAGS) -c _client/init.cpp -o init.o $(LDFLAGS)
+
+draw.o: _client/draw.cpp _client/draw.h _client/common.h
+	$(CC) $(CFLAGS) -c _client/draw.cpp -o draw.o $(LDFLAGS)
 
 # Clean Rule
 clean:

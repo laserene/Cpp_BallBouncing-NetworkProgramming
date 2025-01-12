@@ -19,6 +19,11 @@ void handle_communication(const int sock) {
     char buffer[BUFFER_SIZE] = {};
     fd_set read_fds; // File descriptors, each represent a socket
 
+    // Select timeout
+    timeval timeout = {};
+    timeout.tv_sec = 0;  // 0 seconds
+    timeout.tv_usec = 16000;
+
     // App handler
     memset(&app, 0, sizeof(App));
     initSDL();
@@ -32,8 +37,8 @@ void handle_communication(const int sock) {
         FD_SET(sock, &read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
 
-        if (select(sock + 1, &read_fds, nullptr, nullptr, nullptr) < 0) {
-            perror("Select error");
+        if (select(sock + 1, &read_fds, nullptr, nullptr, &timeout) < 0) {
+            printf("Select error\n");
             break;
         }
 
