@@ -19,14 +19,20 @@ static void fireBullet();
 
 static void doPlayer(int sock);
 
+static void doFighters();
+
 static void doBullets();
 
-static void drawPlayer();
+static void drawFighters();
 
 static void drawBullets();
 
+static void spawnEnemies();
+
 static Entity *player;
 static SDL_Texture *bulletTexture;
+static SDL_Texture *enemyTexture;
+static int enemySpawnTimer;
 
 void initStage() {
     app.delegate.logic = logic;
@@ -38,6 +44,8 @@ void initStage() {
 
     initPlayer();
     bulletTexture = loadTexture(BULLET_TEXTURE);
+    enemyTexture = loadTexture(ENEMY_TEXTURE);
+    enemySpawnTimer = 0;
 }
 
 static void initPlayer() {
@@ -54,7 +62,9 @@ static void initPlayer() {
 
 static void logic(const int sock, const fd_set &read_fds) {
     doPlayer(sock);
+    doFighters();
     doBullets();
+    spawnEnemies();
 
     char buffer[BUFFER_SIZE] = {};
     if (FD_ISSET(sock, &read_fds)) {
@@ -120,6 +130,27 @@ static void doPlayer(const int sock) {
     }
 }
 
+static void doFighters() {
+    Entity *prev = &stage.fighterHead;
+
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        e->x += e->dx;
+        e->y += e->dy;
+
+        if (e != player && e->x < -e->w) {
+            if (e == stage.fighterTail) {
+                stage.fighterTail = prev;
+            }
+
+            prev->next = e->next;
+            free(e);
+            e = prev;
+        }
+
+        prev = e;
+    }
+}
+
 static void fireBullet() {
     auto *bullet = static_cast<Entity *>(malloc(sizeof(Entity)));
     memset(bullet, 0, sizeof(Entity));
@@ -159,13 +190,33 @@ static void doBullets() {
     }
 }
 
+static void spawnEnemies() {
+    if (--enemySpawnTimer <= 0) {
+        auto *enemy = static_cast<Entity *>(malloc(sizeof(Entity)));
+        memset(enemy, 0, sizeof(Entity));
+        stage.fighterTail->next = enemy;
+        stage.fighterTail = enemy;
+
+        enemy->x = SCREEN_WIDTH;
+        enemy->y = rand() % SCREEN_HEIGHT;
+        enemy->texture = enemyTexture;
+        SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);
+
+        enemy->dx = -(2 + (rand() % 4));
+
+        enemySpawnTimer = 30 + (rand() % 60);
+    }
+}
+
 static void draw() {
-    drawPlayer();
+    drawFighters();
     drawBullets();
 }
 
-static void drawPlayer() {
-    blit(player->texture, player->x, player->y);
+static void drawFighters() {
+    for (const Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        blit(e->texture, e->x, e->y);
+    }
 }
 
 static void drawBullets() {
