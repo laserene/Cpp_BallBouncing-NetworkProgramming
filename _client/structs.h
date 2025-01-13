@@ -38,6 +38,12 @@ typedef struct {
     int keyboard[MAX_KEYBOARD_KEYS];
 } App;
 
+typedef struct {
+    int id;
+    int health;
+    SDL_Texture *texture;
+} Pod;
+
 struct Entity {
     float x;
     float y;
@@ -48,6 +54,11 @@ struct Entity {
     int health;
     int reload;
     int side;
+    /*
+     * Positive pod_id: buff
+     * Negative pod_id: debuff
+     */
+    int pod_id;
     SDL_Texture *texture;
     Entity *next;
 };
@@ -58,6 +69,9 @@ typedef struct {
     Explosion explosionHead, *explosionTail;
     Debris debrisHead, *debrisTail;
     Entity pointsHead, *pointsTail;
+    // there are 3 instant-consuming buffs: FROZEN, HEART & REFRESH
+    Pod buffList[NUM_BUFF - 3];
+    Pod debuffList[NUM_DEBUFF];
     int score;
 } Stage;
 

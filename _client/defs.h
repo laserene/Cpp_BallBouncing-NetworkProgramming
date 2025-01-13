@@ -24,4 +24,9 @@
 
 #define ALIEN_BULLET_SPEED    8
 
+#define BUFF_RATE   15
+#define DEBUFF_RATE 10
+#define NUM_BUFF 6
+#define NUM_DEBUFF 5
+
 #endif //DEFS_H

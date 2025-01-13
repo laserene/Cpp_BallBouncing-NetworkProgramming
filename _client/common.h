@@ -11,6 +11,8 @@
 #include "cstring"
 
 #include "paths.h"
+#include "buff.h"
+#include "debuff.h"
 #include "structs.h"
 #include "defs.h"
 #include "text.h"

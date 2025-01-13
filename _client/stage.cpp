@@ -6,6 +6,7 @@
 #include "draw.h"
 #include "defs.h"
 #include "util.h"
+#include "helper.h"
 
 extern App app;
 extern Stage stage;
@@ -52,7 +53,7 @@ static void fireAlienBullet(Entity *e);
 
 static void doPointsPods();
 
-static void addPointsPod(int x, int y);
+static void addPointsPod(int x, int y, int type);
 
 static void clipPlayer();
 
@@ -70,6 +71,21 @@ static void drawDebris();
 
 static void drawHud();
 
+static void drawHeart(int x, int y);
+
+static void drawBuff(int x, int y);
+
+static void drawDebuff(int x, int y);
+
+// Buff
+static void apply_freeze();
+
+static void apply_heart();
+
+static void apply_refresh();
+
+// Debuff
+
 static Entity *player;
 static SDL_Texture *playerTexture;
 static SDL_Texture *bulletTexture;
@@ -77,7 +93,22 @@ static SDL_Texture *enemyTexture;
 static SDL_Texture *enemyBulletTexture;
 static SDL_Texture *background;
 static SDL_Texture *explosionTexture;
-static SDL_Texture *pointsTexture;
+
+// Buff texture
+static SDL_Texture *widespreadTexture;
+static SDL_Texture *frozenTexture;
+static SDL_Texture *speedupTexture;
+static SDL_Texture *luckTexture;
+static SDL_Texture *heartTexture;
+static SDL_Texture *refreshTexture;
+
+// Debuff texture
+static SDL_Texture *bleedingTexture;
+static SDL_Texture *weakTexture;
+static SDL_Texture *confusionTexture;
+static SDL_Texture *darkTexture;
+static SDL_Texture *chillTexture;
+
 static int enemySpawnTimer;
 static int stageResetTimer;
 static int backgroundX;
@@ -102,9 +133,23 @@ void initStage() {
     bulletTexture = loadTexture(BULLET_TEXTURE);
     enemyTexture = loadTexture(ENEMY_TEXTURE);
     enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
+
     background = loadTexture(BACKGROUND_TEXTURE);
     explosionTexture = loadTexture(EXPLOSION_TEXTURE);
-    pointsTexture = loadTexture(WIDESPREAD_BUFF);
+
+    // Invariable texture to biomes
+    widespreadTexture = loadTexture(WIDESPREAD_BUFF);
+    frozenTexture = loadTexture(FROZEN_BUFF);
+    speedupTexture = loadTexture(SPEEDUP_BUFF);
+    luckTexture = loadTexture(LUCK_BUFF);
+    heartTexture = loadTexture(HEART_BUFF);
+    refreshTexture = loadTexture(REFRESH_BUFF);
+
+    bleedingTexture = loadTexture(BLEEDING_DEBUFF);
+    weakTexture = loadTexture(WEAK_DEBUFF);
+    confusionTexture = loadTexture(CONFUSION_DEBUFF);
+    darkTexture = loadTexture(DARK_DEBUFF);
+    chillTexture = loadTexture(CHILL_DEBUFF);
 
     resetStage();
 }
@@ -171,10 +216,10 @@ static void initPlayer() {
 }
 
 static void initStarfield() {
-    for (int i = 0; i < MAX_STARS; i++) {
-        stars[i].x = rand() % SCREEN_WIDTH;
-        stars[i].y = rand() % SCREEN_HEIGHT;
-        stars[i].speed = 1 + rand() % 8;
+    for (auto &star: stars) {
+        star.x = rand() % SCREEN_WIDTH;
+        star.y = rand() % SCREEN_HEIGHT;
+        star.speed = 1 + rand() % 8;
     }
 }
 
@@ -295,38 +340,108 @@ static void doFighters() {
 }
 
 static void doPointsPods() {
+    // Looping all current point pods to check
     Entity *prev = &stage.pointsHead;
-
     for (Entity *e = stage.pointsHead.next; e != nullptr; e = e->next) {
+        // Reflect if collides mit edge
         if (e->x < 0) {
             e->x = 0;
             e->dx = -e->dx;
         }
 
+        // Accounting for entity height
         if (e->x + e->w > SCREEN_WIDTH) {
             e->x = SCREEN_WIDTH - e->w;
             e->dx = -e->dx;
         }
 
+        // Reflect if collides mit edge
         if (e->y < 0) {
             e->y = 0;
             e->dy = -e->dy;
         }
 
+        // Accounting for entity height
         if (e->y + e->h > SCREEN_HEIGHT) {
             e->y = SCREEN_HEIGHT - e->h;
             e->dy = -e->dy;
         }
 
+        // Moving
         e->x += e->dx;
         e->y += e->dy;
 
+        // Colliding mit player
         if (player != nullptr && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h)) {
             e->health = 0;
+
+            if (const int pod_id = e->pod_id; pod_id > 0) {
+                switch (pod_id) {
+                    case WIDESPREAD:
+                    case SPEEDUP:
+                    case LUCK:
+                        for (auto &i: stage.buffList) {
+                            const int buff_id = i.id;
+
+                            // Duplicated buff --> refresh buff
+                            if (pod_id == buff_id) {
+                                i.health = 15 * FPS;
+                                break;
+                            }
+
+                            /*
+                             * Non-duplicated existing buff
+                             * Check if duplicated buff --> refresh buff. Then break the loop since buff consumed
+                             */
+                            if (buff_id != 0) continue;
+
+                            i.id = pod_id;
+                            i.texture = e->texture;
+                            i.health = 15 * FPS;
+                            break;
+                        }
+                        break;
+                    case FROZEN:
+                        apply_freeze();
+                        break;
+                    case HEART:
+                        apply_heart();
+                        break;
+                    case REFRESH:
+                        // TODO: Refresh stat and remove all elements in stage.debuffList
+                        apply_refresh();
+                        break;
+                    default:
+                        break;
+                }
+            } else if (pod_id < 0) {
+                for (auto &i: stage.debuffList) {
+                    const int debuff_id = i.id;
+
+                    // Duplicated buff --> refresh buff
+                    if (pod_id == debuff_id) {
+                        i.health = 15 * FPS;
+                        break;
+                    }
+
+                    /*
+                     * Non-duplicated existing debuff
+                     * Check if duplicated debuff --> refresh debuff. Then break the loop since debuff consumed
+                     */
+                    if (debuff_id != 0) continue;
+
+                    i.id = pod_id;
+                    i.texture = e->texture;
+                    i.health = 15 * FPS;
+                    break;
+                }
+            }
+
             stage.score++;
             highscore = MAX(stage.score, highscore);
         }
 
+        // Pods exist in 15s at max
         if (--e->health <= 0) {
             if (e == stage.pointsTail) {
                 stage.pointsTail = prev;
@@ -398,8 +513,10 @@ static int bulletHitFighter(Entity *b) {
             if (e->health <= 0) {
                 addExplosions(e->x, e->y, 32);
                 addDebris(e);
-                if (e != player) {
-                    addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                if (e->side == SIDE_ALIEN) {
+                    // Generte buff, debuff
+                    if (getRandomNumber(1, 100) <= BUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2, 0);
+                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2, 1);
                 }
             }
 
@@ -604,23 +721,73 @@ static void addDebris(const Entity *e) {
     }
 }
 
-static void addPointsPod(int x, int y) {
+static void addPointsPod(const int x, const int y, const int type) {
     const auto e = static_cast<Entity *>(malloc(sizeof(Entity)));
     memset(e, 0, sizeof(Entity));
-    stage.pointsTail->next = e;
-    stage.pointsTail = e;
 
     e->x = x;
     e->y = y;
     e->dx = -(rand() % 5);
     e->dy = (rand() % 5) - (rand() % 5);
-    e->health = FPS * 10;
-    e->texture = pointsTexture;
+    e->health = FPS * 15;
 
-    SDL_QueryTexture(e->texture, NULL, NULL, &e->w, &e->h);
+    SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
 
     e->x -= e->w / 2;
     e->y -= e->h / 2;
+
+    int pod_id;
+    if (type == 0) {
+        pod_id = getRandomNumber(1, 100) % NUM_BUFF + 1;
+        e->pod_id = pod_id;
+        switch (pod_id) {
+            case WIDESPREAD:
+                e->texture = widespreadTexture;
+                break;
+            case FROZEN:
+                e->texture = frozenTexture;
+                break;
+            case SPEEDUP:
+                e->texture = speedupTexture;
+                break;
+            case LUCK:
+                e->texture = luckTexture;
+                break;
+            case HEART:
+                e->texture = heartTexture;
+                break;
+            case REFRESH:
+                e->texture = refreshTexture;
+                break;
+            default:
+                break;
+        }
+        stage.pointsTail->next = e;
+        stage.pointsTail = e;
+    } else if (type == 1) {
+        pod_id = getRandomNumber(1, 100) % NUM_DEBUFF;
+        e->pod_id = -1 * pod_id;
+        switch (pod_id) {
+            case BLEEDING:
+                e->texture = bleedingTexture;
+                break;
+            case WEAK:
+                e->texture = weakTexture;
+                break;
+            case CONFUSION:
+                e->texture = confusionTexture;
+                break;
+            case DARK:
+                e->texture = darkTexture;
+                break;
+            case CHILL:
+                e->texture = chillTexture;
+                break;
+        }
+        stage.pointsTail->next = e;
+        stage.pointsTail->next = e;
+        stage.pointsTail = e;
+    } else free(e);
 }
 
 static void draw() {
@@ -697,9 +864,9 @@ static void drawExplosions() {
 
 static void drawHud() {
     drawText(10, 10, 255, 255, 255, SCORE, stage.score);
-    // drawHeart(10, 40);
-    // drawDebuff(200, 6);
-    // drawBuff(200, 40);
+    drawHeart(10, 40);
+    drawDebuff(200, 6);
+    drawBuff(200, 40);
 
     if (stage.score > 0 && stage.score == highscore) {
         drawText(1336, 10, 0, 255, 0, HIGHSCORE, highscore);
@@ -708,37 +875,54 @@ static void drawHud() {
     }
 }
 
-// static void drawHeart(const int x, const int y) {
-//     if (heartTexture != nullptr && player != nullptr) {
-//         for (int i = 0; i < player->health; i++) {
-//             if (i != 9) {
-//                 const int heartX = x + i * 20;
-//                 blit(heartTexture, heartX, y);
-//             } else {
-//                 blit(heartTexture, x, y + 20);
-//             }
-//         }
-//     }
-// }
-//
-// static void drawDebuff(const int x, const int y) {
-//     int count_debuff = 0;
-//     for (int i = 0; i < NUM_DEBUFF; i++) {
-//         if (stage.debuffList[i].id != 0) {
-//             const int debuffX = x + count_debuff * 34;
-//             count_debuff += 1;
-//             blit(stage.debuffList[i].texture, debuffX, y);
-//         }
-//     }
-// }
-//
-// static void drawBuff(int x, int y) {
-//     int count_buff = 0;
-//     for (int i = 0; i < NUM_BUFF; i++) {
-//         if (stage.buffList[i].id != 0) {
-//             const int buffX = x + count_buff * 34;
-//             count_buff += 1;
-//             blit(stage.buffList[i].texture, buffX, y);
-//         }
-//     }
-// }
+static void drawHeart(const int x, const int y) {
+    if (heartTexture != nullptr && player != nullptr) {
+        for (int i = 0; i < player->health; i++) {
+            if (i != 9) {
+                const int heartX = x + i * 20;
+                blit(heartTexture, heartX, y);
+            } else {
+                blit(heartTexture, x, y + 20);
+            }
+        }
+    }
+}
+
+static void drawDebuff(const int x, const int y) {
+    int count_debuff = 0;
+    for (auto &i: stage.debuffList) {
+        if (i.id != 0) {
+            const int debuffX = x + count_debuff * 34;
+            count_debuff += 1;
+            blit(i.texture, debuffX, y);
+        }
+    }
+}
+
+static void drawBuff(const int x, const int y) {
+    int count_buff = 0;
+    for (int i = 0; i < NUM_BUFF; i++) {
+        if (stage.buffList[i].id != 0) {
+            const int buffX = x + count_buff * 34;
+            count_buff += 1;
+            blit(stage.buffList[i].texture, buffX, y);
+        }
+    }
+}
+
+static void apply_freeze() {
+    for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        e->dx = 0;
+        e->dy = 0;
+    }
+}
+
+void apply_speedup() {
+}
+
+static void apply_heart() {
+    if (player->health < 10) player->health += 1;
+}
+
+static void apply_refresh() {
+}
