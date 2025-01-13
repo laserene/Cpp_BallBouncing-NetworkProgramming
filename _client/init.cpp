@@ -27,7 +27,15 @@ void initSDL() {
         exit(1);
     }
 
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
+    // Font
+    if (TTF_Init() < 0) {
+        printf("Couldn't initialize TTF: %s\n", TTF_GetError());
+    }
+
+    // Img
+    if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) {
+        printf("Couldn't initialize SDL_image: %s\n", IMG_GetError());
+    }
 
     SDL_ShowCursor(0);
 }

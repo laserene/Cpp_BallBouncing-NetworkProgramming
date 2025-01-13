@@ -11,8 +11,8 @@ server: server.o auth.o server_helpers.o handle_client_message.o
 	$(CC) $(CFLAGS) -o server server.o auth.o server_helpers.o handle_client_message.o
 
 # Client Target
-client: client.o input.o init.o draw.o stage.o util.o text.o
-	$(CC) $(CFLAGS) -o client client.o input.o init.o draw.o stage.o util.o text.o $(LDFLAGS)
+client: client.o input.o init.o draw.o stage.o util.o text.o helper.o
+	$(CC) $(CFLAGS) -o client client.o input.o init.o draw.o stage.o util.o text.o helper.o $(LDFLAGS)
 
 # Object Files
 server.o: _server/server.cpp _server/auth.h _server/defs.h
@@ -47,6 +47,9 @@ util.o: _client/util.cpp _client/util.h
 
 text.o: _client/text.cpp _client/text.h
 	$(CC) $(CFLAGS) -c _client/text.cpp -o text.o $(LDFLAGS)
+
+helper.o: _client/helper.cpp _client/helper.h
+	$(CC) $(CFLAGS) -c _client/helper.cpp -o helper.o $(LDFLAGS)
 
 # Clean Rule
 clean:

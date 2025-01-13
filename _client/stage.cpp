@@ -50,11 +50,17 @@ static void spawnEnemies();
 
 static void fireAlienBullet(Entity *e);
 
+static void doPointsPods();
+
+static void addPointsPod(int x, int y);
+
 static void clipPlayer();
 
 static void resetStage();
 
 static void drawExplosions();
+
+static void drawPointsPods();
 
 static void drawBackground();
 
@@ -71,6 +77,7 @@ static SDL_Texture *enemyTexture;
 static SDL_Texture *enemyBulletTexture;
 static SDL_Texture *background;
 static SDL_Texture *explosionTexture;
+static SDL_Texture *pointsTexture;
 static int enemySpawnTimer;
 static int stageResetTimer;
 static int backgroundX;
@@ -97,6 +104,7 @@ void initStage() {
     enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
     background = loadTexture(BACKGROUND_TEXTURE);
     explosionTexture = loadTexture(EXPLOSION_TEXTURE);
+    pointsTexture = loadTexture(WIDESPREAD_BUFF);
 
     resetStage();
 }
@@ -126,17 +134,23 @@ static void resetStage() {
         free(d);
     }
 
+    while (stage.pointsHead.next) {
+        Entity *e = stage.pointsHead.next;
+        stage.pointsHead.next = e->next;
+        free(e);
+    }
+
     memset(&stage, 0, sizeof(Stage));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
+    stage.pointsTail = &stage.pointsHead;
 
     initPlayer();
     initStarfield();
 
     stage.score = 0;
-
     enemySpawnTimer = 0;
     stageResetTimer = FPS * 4;
 }
@@ -152,6 +166,7 @@ static void initPlayer() {
     player->health = 3;
     player->side = SIDE_PLAYER;
     player->texture = playerTexture;
+
     SDL_QueryTexture(player->texture, nullptr, nullptr, &player->w, &player->h);
 }
 
@@ -183,6 +198,7 @@ static void logic(const int sock, const fd_set &read_fds) {
     doBullets();
     doExplosions();
     doDebris();
+    doPointsPods();
     spawnEnemies();
 
     clipPlayer();
@@ -193,18 +209,20 @@ static void logic(const int sock, const fd_set &read_fds) {
 }
 
 void handle_server_message(const char *buffer) {
-    if (strncmp(buffer, "UPDATE", 6) == 0) {
-        int u, d, l, r;
-        sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
-        player->dy += u;
-        player->dy += d;
-        player->dx += l;
-        player->dx += r;
+    if (player != nullptr) {
+        if (strncmp(buffer, "UPDATE", 6) == 0) {
+            int u, d, l, r;
+            sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
+            player->dy += u;
+            player->dy += d;
+            player->dx += l;
+            player->dx += r;
 
-        player->x += player->dx;
-        player->y += player->dy;
-    } else {
-        std::cout << buffer << std::endl;
+            player->x += player->dx;
+            player->y += player->dy;
+        } else {
+            std::cout << buffer << std::endl;
+        }
     }
 }
 
@@ -276,6 +294,53 @@ static void doFighters() {
     }
 }
 
+static void doPointsPods() {
+    Entity *prev = &stage.pointsHead;
+
+    for (Entity *e = stage.pointsHead.next; e != nullptr; e = e->next) {
+        if (e->x < 0) {
+            e->x = 0;
+            e->dx = -e->dx;
+        }
+
+        if (e->x + e->w > SCREEN_WIDTH) {
+            e->x = SCREEN_WIDTH - e->w;
+            e->dx = -e->dx;
+        }
+
+        if (e->y < 0) {
+            e->y = 0;
+            e->dy = -e->dy;
+        }
+
+        if (e->y + e->h > SCREEN_HEIGHT) {
+            e->y = SCREEN_HEIGHT - e->h;
+            e->dy = -e->dy;
+        }
+
+        e->x += e->dx;
+        e->y += e->dy;
+
+        if (player != nullptr && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h)) {
+            e->health = 0;
+            stage.score++;
+            highscore = MAX(stage.score, highscore);
+        }
+
+        if (--e->health <= 0) {
+            if (e == stage.pointsTail) {
+                stage.pointsTail = prev;
+            }
+
+            prev->next = e->next;
+            free(e);
+            e = prev;
+        }
+
+        prev = e;
+    }
+}
+
 static void doEnemies() {
     for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
         if (e != player && player != nullptr && --e->reload <= 0) {
@@ -333,6 +398,9 @@ static int bulletHitFighter(Entity *b) {
             if (e->health <= 0) {
                 addExplosions(e->x, e->y, 32);
                 addDebris(e);
+                if (e != player) {
+                    addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                }
             }
 
             stage.score++;
@@ -536,11 +604,31 @@ static void addDebris(const Entity *e) {
     }
 }
 
+static void addPointsPod(int x, int y) {
+    const auto e = static_cast<Entity *>(malloc(sizeof(Entity)));
+    memset(e, 0, sizeof(Entity));
+    stage.pointsTail->next = e;
+    stage.pointsTail = e;
+
+    e->x = x;
+    e->y = y;
+    e->dx = -(rand() % 5);
+    e->dy = (rand() % 5) - (rand() % 5);
+    e->health = FPS * 10;
+    e->texture = pointsTexture;
+
+    SDL_QueryTexture(e->texture, NULL, NULL, &e->w, &e->h);
+
+    e->x -= e->w / 2;
+    e->y -= e->h / 2;
+}
+
 static void draw() {
     drawBackground();
     drawStarfield();
     drawFighters();
     drawBullets();
+    drawPointsPods();
     drawDebris();
     drawExplosions();
     drawHud();
@@ -571,6 +659,12 @@ static void drawStarfield() {
 
 static void drawFighters() {
     for (const Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
+        blit(e->texture, e->x, e->y);
+    }
+}
+
+static void drawPointsPods() {
+    for (const Entity *e = stage.pointsHead.next; e != nullptr; e = e->next) {
         blit(e->texture, e->x, e->y);
     }
 }
