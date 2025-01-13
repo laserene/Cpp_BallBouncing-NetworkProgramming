@@ -62,6 +62,8 @@ static void drawStarfield();
 
 static void drawDebris();
 
+static void drawHud();
+
 static Entity *player;
 static SDL_Texture *playerTexture;
 static SDL_Texture *bulletTexture;
@@ -72,8 +74,12 @@ static SDL_Texture *explosionTexture;
 static int enemySpawnTimer;
 static int stageResetTimer;
 static int backgroundX;
+static int highscore;
 
 Star stars[MAX_STARS] = {};
+
+auto SCORE = "SCORE: %03d";
+auto HIGHSCORE = "HIGHSCORE: %03d";
 
 void initStage() {
     app.delegate.logic = logic;
@@ -128,6 +134,8 @@ static void resetStage() {
 
     initPlayer();
     initStarfield();
+
+    stage.score = 0;
 
     enemySpawnTimer = 0;
     stageResetTimer = FPS * 4;
@@ -326,6 +334,9 @@ static int bulletHitFighter(Entity *b) {
                 addExplosions(e->x, e->y, 32);
                 addDebris(e);
             }
+
+            stage.score++;
+            highscore = MAX(stage.score, highscore);
 
             return 1;
         }
@@ -532,6 +543,7 @@ static void draw() {
     drawBullets();
     drawDebris();
     drawExplosions();
+    drawHud();
 }
 
 static void drawBackground() {
@@ -587,4 +599,14 @@ static void drawExplosions() {
     }
 
     SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
+}
+
+static void drawHud() {
+    drawText(10, 10, 255, 255, 255, SCORE, stage.score);
+
+    if (stage.score > 0 && stage.score == highscore) {
+        drawText(960, 10, 0, 255, 0, HIGHSCORE, highscore);
+    } else {
+        drawText(960, 10, 255, 255, 255, HIGHSCORE, highscore);
+    }
 }

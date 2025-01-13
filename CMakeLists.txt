@@ -31,4 +31,6 @@ add_executable(auth _client/client.cpp
         _client/util.cpp
         _client/util.h
         _client/stage.cpp
+        _client/text.cpp
+        _client/text.h
 )

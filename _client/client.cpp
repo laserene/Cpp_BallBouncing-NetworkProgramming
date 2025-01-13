@@ -34,6 +34,7 @@ void handle_communication(const int sock) {
 
     atexit(cleanup);
     initStage();
+    initFonts();
 
     long then = SDL_GetTicks();
     float remainder = 0;
