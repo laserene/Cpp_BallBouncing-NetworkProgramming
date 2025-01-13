@@ -745,6 +745,10 @@ static void addPointsPod(const int x, const int y, const int type) {
     e->y = y;
     e->dx = -(rand() % 5);
     e->dy = (rand() % 5) - (rand() % 5);
+
+    if (e->dx == 0) e->dx -= 1;
+    if (e->dy == 0) e->dy += 1;
+
     e->health = FPS * 15;
 
     int pod_id;
