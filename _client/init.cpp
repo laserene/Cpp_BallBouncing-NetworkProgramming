@@ -36,8 +36,6 @@ void initSDL() {
     if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) {
         printf("Couldn't initialize SDL_image: %s\n", IMG_GetError());
     }
-
-    SDL_ShowCursor(0);
 }
 
 void cleanup() {

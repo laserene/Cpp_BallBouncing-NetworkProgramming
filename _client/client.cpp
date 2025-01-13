@@ -84,6 +84,7 @@ int main(const int argc, char *argv[]) {
     server_addr.sin_port = htons(atoi(argv[2]));
     inet_pton(AF_INET, argv[1], &server_addr.sin_addr);
 
+    // Connect to server
     if (connect(sock, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1) {
         perror("Connection failed!");
         return 1;
