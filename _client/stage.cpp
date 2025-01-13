@@ -130,7 +130,7 @@ static void resetStage() {
     initStarfield();
 
     enemySpawnTimer = 0;
-    stageResetTimer = FPS * 3;
+    stageResetTimer = FPS * 4;
 }
 
 static void initPlayer() {
@@ -159,12 +159,6 @@ static void logic(const int sock, const fd_set &read_fds) {
     doBackground();
     doStarfield();
     doPlayer(sock);
-    doEnemies();
-    doFighters();
-    doBullets();
-    doExplosions();
-    doDebris();
-    spawnEnemies();
 
     char buffer[BUFFER_SIZE] = {};
     if (FD_ISSET(sock, &read_fds)) {
@@ -175,6 +169,13 @@ static void logic(const int sock, const fd_set &read_fds) {
         }
         handle_server_message(buffer);
     }
+
+    doEnemies();
+    doFighters();
+    doBullets();
+    doExplosions();
+    doDebris();
+    spawnEnemies();
 
     clipPlayer();
 
@@ -319,11 +320,12 @@ static int bulletHitFighter(Entity *b) {
     for (Entity *e = stage.fighterHead.next; e != nullptr; e = e->next) {
         if (e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h)) {
             b->health = 0;
-            e->health = 0;
+            e->health -= 1;
 
-            addExplosions(e->x, e->y, 32);
-
-            addDebris(e);
+            if (e->health <= 0) {
+                addExplosions(e->x, e->y, 32);
+                addDebris(e);
+            }
 
             return 1;
         }
