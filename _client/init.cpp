@@ -13,7 +13,7 @@ void initSDL() {
         exit(1);
     }
 
-    app.window = SDL_CreateWindow("Shooter 01", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
+    app.window = SDL_CreateWindow("Arkanoid", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                                   SCREEN_HEIGHT, windowFlags);
     if (!app.window) {
         printf("Failed to open %d x %d window: %s\n", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
@@ -28,6 +28,8 @@ void initSDL() {
     }
 
     IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
+
+    SDL_ShowCursor(0);
 }
 
 void cleanup() {

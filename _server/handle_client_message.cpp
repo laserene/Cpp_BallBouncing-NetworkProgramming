@@ -9,7 +9,7 @@ char *handle_move_message(char *buffer) {
     int u, d, l, r;
     sscanf(buffer, CLIENT_MOVE, &u, &d, &l, &r);
 
-    int player_speed = PLAYER_SPEED;
+    constexpr int player_speed = PLAYER_SPEED;
 
     if (u != 0) {
         snprintf(buffer, BUFFER_SIZE, REPLY_CLIENT_UPDATE, -player_speed, 0, 0, 0);

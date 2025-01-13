@@ -16,6 +16,8 @@ static void draw();
 
 static void initPlayer();
 
+static void initStarfield();
+
 static void fireBullet();
 
 static void doPlayer(int sock);
@@ -25,6 +27,18 @@ static void doFighters();
 static void doEnemies();
 
 static void doBullets();
+
+static void doBackground();
+
+static void doStarfield();
+
+static void doExplosions();
+
+static void addExplosions(int x, int y, int num);
+
+static void addDebris(const Entity *e);
+
+static void doDebris();
 
 static int bulletHitFighter(Entity *b);
 
@@ -40,13 +54,26 @@ static void clipPlayer();
 
 static void resetStage();
 
+static void drawExplosions();
+
+static void drawBackground();
+
+static void drawStarfield();
+
+static void drawDebris();
+
 static Entity *player;
 static SDL_Texture *playerTexture;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *enemyTexture;
 static SDL_Texture *enemyBulletTexture;
+static SDL_Texture *background;
+static SDL_Texture *explosionTexture;
 static int enemySpawnTimer;
 static int stageResetTimer;
+static int backgroundX;
+
+Star stars[MAX_STARS] = {};
 
 void initStage() {
     app.delegate.logic = logic;
@@ -55,11 +82,15 @@ void initStage() {
     memset(&stage, 0, sizeof(Stage));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
+    stage.explosionTail = &stage.explosionHead;
+    stage.debrisTail = &stage.debrisHead;
 
     playerTexture = loadTexture(PLAYER_TEXTURE);
     bulletTexture = loadTexture(BULLET_TEXTURE);
     enemyTexture = loadTexture(ENEMY_TEXTURE);
     enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
+    background = loadTexture(BACKGROUND_TEXTURE);
+    explosionTexture = loadTexture(EXPLOSION_TEXTURE);
 
     resetStage();
 }
@@ -79,13 +110,29 @@ static void resetStage() {
         free(e);
     }
 
+    while (stage.explosionHead.next) {
+        Explosion *ex = stage.explosionHead.next;
+        stage.explosionHead.next = ex->next;
+        free(ex);
+    }
+
+    while (stage.debrisHead.next) {
+        Debris *d = stage.debrisHead.next;
+        stage.debrisHead.next = d->next;
+        free(d);
+    }
+
     memset(&stage, 0, sizeof(Stage));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
+    stage.explosionTail = &stage.explosionHead;
+    stage.debrisTail = &stage.debrisHead;
 
     initPlayer();
+    initStarfield();
+
     enemySpawnTimer = 0;
-    stageResetTimer = FPS * 2;
+    stageResetTimer = FPS * 3;
 }
 
 static void initPlayer() {
@@ -102,7 +149,17 @@ static void initPlayer() {
     SDL_QueryTexture(player->texture, nullptr, nullptr, &player->w, &player->h);
 }
 
+static void initStarfield() {
+    for (int i = 0; i < MAX_STARS; i++) {
+        stars[i].x = rand() % SCREEN_WIDTH;
+        stars[i].y = rand() % SCREEN_HEIGHT;
+        stars[i].speed = 1 + rand() % 8;
+    }
+}
+
 static void logic(const int sock, const fd_set &read_fds) {
+    doBackground();
+    doStarfield();
     doPlayer(sock);
     doEnemies();
     doFighters();
@@ -120,6 +177,9 @@ static void logic(const int sock, const fd_set &read_fds) {
     }
 
     clipPlayer();
+    doExplosions();
+    doDebris();
+
     if (player == nullptr && --stageResetTimer <= 0) {
         resetStage();
     }
@@ -263,6 +323,10 @@ static int bulletHitFighter(Entity *b) {
             b->health = 0;
             e->health = 0;
 
+            addExplosions(e->x, e->y, 32);
+
+            addDebris(e);
+
             return 1;
         }
     }
@@ -334,9 +398,163 @@ static void clipPlayer() {
     }
 }
 
+static void doBackground() {
+    if (--backgroundX < -SCREEN_WIDTH) {
+        backgroundX = 0;
+    }
+}
+
+static void doStarfield() {
+    for (auto &star: stars) {
+        star.x -= star.speed;
+
+        if (star.x < 0) {
+            star.x = SCREEN_WIDTH + star.x;
+        }
+    }
+}
+
+static void doExplosions() {
+    Explosion *prev = &stage.explosionHead;
+
+    for (Explosion *e = stage.explosionHead.next; e != nullptr; e = e->next) {
+        e->x += e->dx;
+        e->y += e->dy;
+
+        if (--e->a <= 0) {
+            if (e == stage.explosionTail) {
+                stage.explosionTail = prev;
+            }
+
+            prev->next = e->next;
+            free(e);
+            e = prev;
+        }
+
+        prev = e;
+    }
+}
+
+static void doDebris() {
+    Debris *prev = &stage.debrisHead;
+
+    for (Debris *d = stage.debrisHead.next; d != nullptr; d = d->next) {
+        d->x += d->dx;
+        d->y += d->dy;
+
+        d->dy += 0.5;
+
+        if (--d->life <= 0) {
+            if (d == stage.debrisTail) {
+                stage.debrisTail = prev;
+            }
+
+            prev->next = d->next;
+            free(d);
+            d = prev;
+        }
+
+        prev = d;
+    }
+}
+
+static void addExplosions(const int x, const int y, const int num) {
+    for (int i = 0; i < num; i++) {
+        auto *e = static_cast<Explosion *>(malloc(sizeof(Explosion)));
+        memset(e, 0, sizeof(Explosion));
+        stage.explosionTail->next = e;
+        stage.explosionTail = e;
+
+        e->x = x + (rand() % 32) - (rand() % 32);
+        e->y = y + (rand() % 32) - (rand() % 32);
+        e->dx = (rand() % 10) - (rand() % 10);
+        e->dy = (rand() % 10) - (rand() % 10);
+
+        e->dx /= 10;
+        e->dy /= 10;
+
+        switch (rand() % 4) {
+            case 0:
+                e->r = 255;
+                break;
+
+            case 1:
+                e->r = 255;
+                e->g = 128;
+                break;
+
+            case 2:
+                e->r = 255;
+                e->g = 255;
+                break;
+
+            default:
+                e->r = 255;
+                e->g = 255;
+                e->b = 255;
+                break;
+        }
+
+        e->a = rand() % FPS * 3;
+    }
+}
+
+static void addDebris(const Entity *e) {
+    const int w = e->w / 2;
+    const int h = e->h / 2;
+
+    for (int y = 0; y <= h; y += h) {
+        for (int x = 0; x <= w; x += w) {
+            auto *d = static_cast<Debris *>(malloc(sizeof(Debris)));
+            memset(d, 0, sizeof(Debris));
+            stage.debrisTail->next = d;
+            stage.debrisTail = d;
+
+            d->x = e->x + e->w / 2;
+            d->y = e->y + e->h / 2;
+            d->dx = (rand() % 5) - (rand() % 5);
+            d->dy = -(5 + (rand() % 12));
+            d->life = FPS * 2;
+            d->texture = e->texture;
+
+            d->rect.x = x;
+            d->rect.y = y;
+            d->rect.w = w;
+            d->rect.h = h;
+        }
+    }
+}
+
 static void draw() {
+    drawBackground();
+    drawStarfield();
     drawFighters();
     drawBullets();
+    drawDebris();
+    drawExplosions();
+}
+
+static void drawBackground() {
+    SDL_Rect dest;
+
+    for (int x = backgroundX; x < SCREEN_WIDTH; x += SCREEN_WIDTH) {
+        dest.x = x;
+        dest.y = 0;
+        dest.w = SCREEN_WIDTH;
+        dest.h = SCREEN_HEIGHT;
+
+        SDL_RenderCopy(app.renderer, background, nullptr, &dest);
+    }
+}
+
+static void drawStarfield() {
+    for (auto &star: stars) {
+        const int c = 32 * star.speed;
+
+        SDL_SetRenderDrawColor(app.renderer, c, c, c, 255);
+
+        SDL_RenderDrawLine(app.renderer, star.x, star.y, star.x + 3, star.y);
+    }
 }
 
 static void drawFighters() {
@@ -349,4 +567,24 @@ static void drawBullets() {
     for (const Entity *b = stage.bulletHead.next; b != nullptr; b = b->next) {
         blit(b->texture, b->x, b->y);
     }
+}
+
+static void drawDebris() {
+    for (const Debris *d = stage.debrisHead.next; d != nullptr; d = d->next) {
+        blitRect(d->texture, &d->rect, d->x, d->y);
+    }
+}
+
+static void drawExplosions() {
+    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_ADD);
+    SDL_SetTextureBlendMode(explosionTexture, SDL_BLENDMODE_ADD);
+
+    for (const Explosion *e = stage.explosionHead.next; e != nullptr; e = e->next) {
+        SDL_SetTextureColorMod(explosionTexture, e->r, e->g, e->b);
+        SDL_SetTextureAlphaMod(explosionTexture, e->a);
+
+        blit(explosionTexture, e->x, e->y);
+    }
+
+    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
 }
