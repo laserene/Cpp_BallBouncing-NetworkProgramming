@@ -96,16 +96,14 @@ void initStage() {
 }
 
 static void resetStage() {
-    Entity *e;
-
     while (stage.fighterHead.next) {
-        e = stage.fighterHead.next;
+        Entity *e = stage.fighterHead.next;
         stage.fighterHead.next = e->next;
         free(e);
     }
 
     while (stage.bulletHead.next) {
-        e = stage.bulletHead.next;
+        Entity *e = stage.bulletHead.next;
         stage.bulletHead.next = e->next;
         free(e);
     }
@@ -164,6 +162,8 @@ static void logic(const int sock, const fd_set &read_fds) {
     doEnemies();
     doFighters();
     doBullets();
+    doExplosions();
+    doDebris();
     spawnEnemies();
 
     char buffer[BUFFER_SIZE] = {};
@@ -177,8 +177,6 @@ static void logic(const int sock, const fd_set &read_fds) {
     }
 
     clipPlayer();
-    doExplosions();
-    doDebris();
 
     if (player == nullptr && --stageResetTimer <= 0) {
         resetStage();
