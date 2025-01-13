@@ -20,12 +20,25 @@ void *handle_client(void *arg) {
 
     while (true) {
         memset(buffer, 0, BUFFER_SIZE);
-        // Receive REGISTER, LOGIN messages
-        recv(client_sock, buffer, BUFFER_SIZE, 0);
+        if (const ssize_t byteRecv = recv(client_sock, buffer, BUFFER_SIZE, 0); byteRecv <= 0) {
+            // Close client socket
+            pthread_mutex_lock(&mutex);
+            for (int & client_socket : client_sockets) {
+                if (client_socket == client_sock) {
+                    client_socket = 0;
+                    break;
+                }
+            }
+            pthread_mutex_unlock(&mutex);
+            close(client_sock);
+            printf("Client disconnected\n");
+            return nullptr;
+        }
 
+        // Receive REGISTER, LOGIN messages
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
-                sscanf(buffer + 9, "%s %s", username, password);
+            sscanf(buffer + 9, "%s %s", username, password);
             if (check_existing_user(username, password, &client_id) != 0) {
                 send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
                 continue;
@@ -56,8 +69,23 @@ void *handle_client(void *arg) {
     while (true) {
         // Broadcast message on any user pushing to server
         memset(buffer, 0, BUFFER_SIZE);
-        recv(client_sock, buffer, BUFFER_SIZE, 0);
+        if (const ssize_t byteRecv = recv(client_sock, buffer, BUFFER_SIZE, 0); byteRecv <= 0) {
+            // Close client socket
+            pthread_mutex_lock(&mutex);
+            for (int & client_socket : client_sockets) {
+                if (client_socket == client_sock) {
+                    client_socket = 0;
+                    break;
+                }
+            }
+            pthread_mutex_unlock(&mutex);
+            close(client_sock);
+            printf("Client disconnected\n");
+            return nullptr;
+        }
+
         std::cout << buffer << std::endl;
+
         if (strncmp(buffer, "MOVE", 4) == 0) {
             strcpy(buffer, handle_move_message(buffer));
             send(client_sock, buffer, strlen(buffer), 0);

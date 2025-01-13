@@ -3,7 +3,7 @@
 
 #include "pthread.h"
 
-#define MAX_CLIENTS 5
+#define MAX_CLIENTS 1
 
 // Init mutex and array to store client sockets
 inline pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
