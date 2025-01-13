@@ -697,10 +697,48 @@ static void drawExplosions() {
 
 static void drawHud() {
     drawText(10, 10, 255, 255, 255, SCORE, stage.score);
+    // drawHeart(10, 40);
+    // drawDebuff(200, 6);
+    // drawBuff(200, 40);
 
     if (stage.score > 0 && stage.score == highscore) {
-        drawText(960, 10, 0, 255, 0, HIGHSCORE, highscore);
+        drawText(1336, 10, 0, 255, 0, HIGHSCORE, highscore);
     } else {
-        drawText(960, 10, 255, 255, 255, HIGHSCORE, highscore);
+        drawText(1336, 10, 255, 255, 255, HIGHSCORE, highscore);
     }
 }
+
+// static void drawHeart(const int x, const int y) {
+//     if (heartTexture != nullptr && player != nullptr) {
+//         for (int i = 0; i < player->health; i++) {
+//             if (i != 9) {
+//                 const int heartX = x + i * 20;
+//                 blit(heartTexture, heartX, y);
+//             } else {
+//                 blit(heartTexture, x, y + 20);
+//             }
+//         }
+//     }
+// }
+//
+// static void drawDebuff(const int x, const int y) {
+//     int count_debuff = 0;
+//     for (int i = 0; i < NUM_DEBUFF; i++) {
+//         if (stage.debuffList[i].id != 0) {
+//             const int debuffX = x + count_debuff * 34;
+//             count_debuff += 1;
+//             blit(stage.debuffList[i].texture, debuffX, y);
+//         }
+//     }
+// }
+//
+// static void drawBuff(int x, int y) {
+//     int count_buff = 0;
+//     for (int i = 0; i < NUM_BUFF; i++) {
+//         if (stage.buffList[i].id != 0) {
+//             const int buffX = x + count_buff * 34;
+//             count_buff += 1;
+//             blit(stage.buffList[i].texture, buffX, y);
+//         }
+//     }
+// }

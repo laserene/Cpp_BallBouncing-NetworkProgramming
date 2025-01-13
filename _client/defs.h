@@ -10,8 +10,8 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-#define SCREEN_WIDTH    1308
-#define SCREEN_HEIGHT   552
+#define SCREEN_WIDTH    1600
+#define SCREEN_HEIGHT   540
 
 #define PLAYER_BULLET_SPEED   16
 
