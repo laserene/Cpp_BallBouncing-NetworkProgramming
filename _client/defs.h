@@ -3,6 +3,8 @@
 
 #define MAX_STARS   500
 
+#define MAX_LINE_LENGTH 1024
+
 #define FPS 60
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
