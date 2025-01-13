@@ -53,7 +53,9 @@ static void fireAlienBullet(Entity *e);
 
 static void doPointsPods();
 
-static void addPointsPod(int x, int y, int type);
+static void addPointsPod(int x, int y);
+
+static void addDebuff();
 
 static void clipPlayer();
 
@@ -99,7 +101,29 @@ void reset_speedup();
 void reset_luck();
 
 // Debuff
+void doDebuff();
 
+void apply_bleeding();
+
+void apply_weak();
+
+void apply_confusion();
+
+void apply_dark();
+
+void apply_chill();
+
+void reset_bleeding();
+
+void reset_weak();
+
+void reset_confusion();
+
+void reset_dark();
+
+void reset_chill();
+
+void reset_debuff();
 
 static Entity *player;
 static SDL_Texture *playerTexture;
@@ -261,6 +285,7 @@ static void logic(const int sock, const fd_set &read_fds) {
     doPointsPods();
     spawnEnemies();
     doBuff();
+    doDebuff();
 
     clipPlayer();
 
@@ -531,8 +556,8 @@ static int bulletHitFighter(Entity *b) {
                 addDebris(e);
                 if (e->side == SIDE_ALIEN) {
                     // Generte buff, debuff
-                    if (getRandomNumber(1, 100) <= BUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2, 0);
-                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2, 1);
+                    if (getRandomNumber(1, 100) <= BUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE) addDebuff();
                 }
             }
 
@@ -737,7 +762,7 @@ static void addDebris(const Entity *e) {
     }
 }
 
-static void addPointsPod(const int x, const int y, const int type) {
+static void addPointsPod(const int x, const int y) {
     const auto e = static_cast<Entity *>(malloc(sizeof(Entity)));
     memset(e, 0, sizeof(Entity));
 
@@ -751,54 +776,29 @@ static void addPointsPod(const int x, const int y, const int type) {
 
     e->health = FPS * 15;
 
-    int pod_id;
-    if (type == 0) {
-        pod_id = getRandomNumber(1, 100) % NUM_BUFF + 1;
-        e->pod_id = pod_id;
-        switch (pod_id) {
-            case WIDESPREAD:
-                e->texture = widespreadTexture;
-                break;
-            case FROZEN:
-                e->texture = frozenTexture;
-                break;
-            case SPEEDUP:
-                e->texture = speedupTexture;
-                break;
-            case LUCK:
-                e->texture = luckTexture;
-                break;
-            case HEART:
-                e->texture = heartTexture;
-                break;
-            case REFRESH:
-                e->texture = refreshTexture;
-                break;
-            default:
-                break;
-        }
-    } else {
-        pod_id = getRandomNumber(1, 100) % NUM_DEBUFF;
-        e->pod_id = -1 * pod_id;
-        switch (pod_id) {
-            case BLEEDING:
-                e->texture = bleedingTexture;
-                break;
-            case WEAK:
-                e->texture = weakTexture;
-                break;
-            case CONFUSION:
-                e->texture = confusionTexture;
-                break;
-            case DARK:
-                e->texture = darkTexture;
-                break;
-            case CHILL:
-                e->texture = chillTexture;
-                break;
-            default:
-                break;
-        }
+    int pod_id = getRandomNumber(1, 100) % NUM_BUFF + 1;
+    e->pod_id = pod_id;
+    switch (pod_id) {
+        case WIDESPREAD:
+            e->texture = widespreadTexture;
+            break;
+        case FROZEN:
+            e->texture = frozenTexture;
+            break;
+        case SPEEDUP:
+            e->texture = speedupTexture;
+            break;
+        case LUCK:
+            e->texture = luckTexture;
+            break;
+        case HEART:
+            e->texture = heartTexture;
+            break;
+        case REFRESH:
+            e->texture = refreshTexture;
+            break;
+        default:
+            break;
     }
 
     SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
@@ -808,6 +808,56 @@ static void addPointsPod(const int x, const int y, const int type) {
     stage.pointsTail->next = e;
     stage.pointsTail->next = e;
     stage.pointsTail = e;
+}
+
+static void addDebuff() {
+    const auto p = static_cast<Pod *>(malloc(sizeof(Pod)));
+    memset(p, 0, sizeof(Pod));
+
+    p->id = getRandomNumber(1, 100) % NUM_DEBUFF;;
+
+    switch (p->id) {
+        case BLEEDING:
+            p->texture = bleedingTexture;
+            break;
+        case WEAK:
+            p->texture = weakTexture;
+            break;
+        case CONFUSION:
+            p->texture = confusionTexture;
+            break;
+        case DARK:
+            p->texture = darkTexture;
+            break;
+        case CHILL:
+            p->texture = chillTexture;
+            break;
+        default:
+            break;
+    }
+
+    for (auto &i: stage.debuffList) {
+        const int debuff_id = i.id;
+
+        // Duplicated buff --> refresh buff
+        if (p->id == debuff_id) {
+            i.health = 15 * FPS;
+            break;
+        }
+
+        /*
+         * Non-duplicated existing buff
+         * Check if duplicated buff --> refresh buff. Then break the loop since buff consumed
+         */
+        if (debuff_id != 0) continue;
+
+        i.id = p->id;
+        i.texture = p->texture;
+        i.health = 15 * FPS;
+        break;
+    }
+
+    free(p);
 }
 
 static void draw() {
@@ -932,7 +982,7 @@ static void drawBuff(const int x, const int y) {
 
 // Buff
 static void doBuff() {
-    for (auto & i : stage.buffList) {
+    for (auto &i: stage.buffList) {
         if (i.id == 0) continue;
         i.health -= 1;
         switch (i.id) {
@@ -990,4 +1040,86 @@ void reset_speedup() {
 }
 
 void reset_luck() {
+}
+
+// Debuff
+void doDebuff() {
+    for (auto &i: stage.debuffList) {
+        if (i.id == 0) continue;
+        i.health -= 1;
+        switch (i.id - 1) {
+            case BLEEDING:
+                if (i.health == 0) {
+                    i.id = 0;
+                    reset_bleeding();
+                } else apply_bleeding();
+                break;
+            case WEAK:
+                if (i.health == 0) {
+                    i.id = 0;
+                    reset_weak();
+                } else apply_weak();
+                break;
+            case CONFUSION:
+                if (i.health == 0) {
+                    i.id = 0;
+                    reset_confusion();
+                } else apply_confusion();
+                break;
+            case DARK:
+                if (i.health == 0) {
+                    i.id = 0;
+                    reset_dark();
+                } else apply_dark();
+                break;
+            case CHILL:
+                if (i.health == 0) {
+                    i.id = 0;
+                    reset_chill();
+                } else apply_chill();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
+void apply_bleeding() {
+}
+
+void apply_weak() {
+}
+
+void apply_confusion() {
+}
+
+void apply_dark() {
+}
+
+void apply_chill() {
+}
+
+void reset_bleeding() {
+}
+
+void reset_weak() {
+}
+
+void reset_confusion() {
+}
+
+void reset_dark() {
+}
+
+void reset_chill() {
+}
+
+void reset_debuff() {
+    memset(stage.debuffList, 0, sizeof(Pod) * NUM_DEBUFF);
+    reset_bleeding();
+    reset_weak();
+    reset_confusion();
+    reset_dark();
+    // if (stat.player_delta > 0) reset_chilled();
 }

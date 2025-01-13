@@ -54,10 +54,6 @@ struct Entity {
     int health;
     int reload;
     int side;
-    /*
-     * Positive pod_id: buff
-     * Negative pod_id: debuff
-     */
     int pod_id;
     SDL_Texture *texture;
     Entity *next;
