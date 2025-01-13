@@ -78,13 +78,28 @@ static void drawBuff(int x, int y);
 static void drawDebuff(int x, int y);
 
 // Buff
+static void doBuff();
+
+static void apply_widespread();
+
+static void apply_speedup();
+
 static void apply_freeze();
+
+static void apply_luck();
 
 static void apply_heart();
 
 static void apply_refresh();
 
+void reset_widespread();
+
+void reset_speedup();
+
+void reset_luck();
+
 // Debuff
+
 
 static Entity *player;
 static SDL_Texture *playerTexture;
@@ -245,6 +260,7 @@ static void logic(const int sock, const fd_set &read_fds) {
     doDebris();
     doPointsPods();
     spawnEnemies();
+    doBuff();
 
     clipPlayer();
 
@@ -731,11 +747,6 @@ static void addPointsPod(const int x, const int y, const int type) {
     e->dy = (rand() % 5) - (rand() % 5);
     e->health = FPS * 15;
 
-    SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
-
-    e->x -= e->w / 2;
-    e->y -= e->h / 2;
-
     int pod_id;
     if (type == 0) {
         pod_id = getRandomNumber(1, 100) % NUM_BUFF + 1;
@@ -762,9 +773,7 @@ static void addPointsPod(const int x, const int y, const int type) {
             default:
                 break;
         }
-        stage.pointsTail->next = e;
-        stage.pointsTail = e;
-    } else if (type == 1) {
+    } else {
         pod_id = getRandomNumber(1, 100) % NUM_DEBUFF;
         e->pod_id = -1 * pod_id;
         switch (pod_id) {
@@ -783,11 +792,18 @@ static void addPointsPod(const int x, const int y, const int type) {
             case CHILL:
                 e->texture = chillTexture;
                 break;
+            default:
+                break;
         }
-        stage.pointsTail->next = e;
-        stage.pointsTail->next = e;
-        stage.pointsTail = e;
-    } else free(e);
+    }
+
+    SDL_QueryTexture(e->texture, nullptr, nullptr, &e->w, &e->h);
+    e->x -= e->w / 2;
+    e->y -= e->h / 2;
+
+    stage.pointsTail->next = e;
+    stage.pointsTail->next = e;
+    stage.pointsTail = e;
 }
 
 static void draw() {
@@ -901,13 +917,46 @@ static void drawDebuff(const int x, const int y) {
 
 static void drawBuff(const int x, const int y) {
     int count_buff = 0;
-    for (int i = 0; i < NUM_BUFF; i++) {
-        if (stage.buffList[i].id != 0) {
+    for (auto &i: stage.buffList) {
+        if (i.id != 0) {
             const int buffX = x + count_buff * 34;
             count_buff += 1;
-            blit(stage.buffList[i].texture, buffX, y);
+            blit(i.texture, buffX, y);
         }
     }
+}
+
+// Buff
+static void doBuff() {
+    for (auto & i : stage.buffList) {
+        if (i.id == 0) continue;
+        i.health -= 1;
+        switch (i.id) {
+            case WIDESPREAD:
+                if (i.health <= 0) {
+                    i.id = 0;
+                    reset_widespread();
+                } else apply_widespread();
+                break;
+            case SPEEDUP:
+                if (i.health <= 0) {
+                    i.id = 0;
+                    reset_speedup();
+                } else apply_speedup();
+                break;
+            case LUCK:
+                if (i.health <= 0) {
+                    i.id = 0;
+                    reset_luck();
+                } else apply_luck();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+static void apply_widespread() {
 }
 
 static void apply_freeze() {
@@ -920,9 +969,21 @@ static void apply_freeze() {
 void apply_speedup() {
 }
 
+void apply_luck() {
+}
+
 static void apply_heart() {
     if (player->health < 10) player->health += 1;
 }
 
 static void apply_refresh() {
+}
+
+void reset_widespread() {
+}
+
+void reset_speedup() {
+}
+
+void reset_luck() {
 }
