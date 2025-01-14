@@ -16,6 +16,7 @@
 #include "welcome.h"
 #include "auth.h"
 #include "menu.h"
+#include "leaderboard.h"
 
 App app;
 Stage stage;
@@ -79,6 +80,8 @@ void handle_communication(const int sock) {
     SDL_Texture *box = loadTexture(BOX_TEXTURE);
     SDL_Texture *half = loadTexture(HALFBOX_TEXTURE);
     SDL_Texture *res = loadTexture(RESPONSE_TEXTURE);
+
+    // SDL_Texture *res = loadTexture(RESPONSE_TEXTURE);
 
     char account[BUFFER_SIZE] = {};
     char password[BUFFER_SIZE] = {};
@@ -237,16 +240,9 @@ void handle_communication(const int sock) {
                         case SDLK_KP_2:
                             // insertPassword = true;
                             break;
-                        // Logging in
                         case SDLK_KP_3:
-                        case SDLK_RETURN:
-                            memset(buffer, 0, BUFFER_SIZE);
-
-                            if (screen == LOGIN) {
-                                snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
-                            } else snprintf(buffer, sizeof(buffer), SEND_REGISTER, account, password);
-
-                            send(sock, buffer, BUFFER_SIZE, 0);
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = LEADERBOARD;
                             break;
                         case SDLK_KP_4:
                         case SDLK_BACKSPACE:
@@ -286,9 +282,37 @@ void handle_communication(const int sock) {
         }
 
         if (screen == LEADERBOARD) {
-            doInput();
-            app.delegate.logic(sock, read_fds);
-            app.delegate.draw();
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(half, 0, 10);
+
+            drawText(720, 20, 255, 255, 255, LEADERBOARD_TEXT);
+            drawText(30, 30, 0, 0, 0, OPTION_RETURN_TEXT);
+
+            drawText(220, 90, 255, 255, 255, HALLOW_TEXT);
+            drawText(560, 90, 255, 255, 255, SNOW_TEXT);
+            drawText(900, 90, 255, 255, 255, RUSTY_TEXT);
+            drawText(1200, 90, 255, 255, 255, SPACE_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                        case SDLK_BACKSPACE:
+                        case SDLK_ESCAPE:
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = MENU;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         if (screen == EXIT) {

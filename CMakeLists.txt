@@ -40,4 +40,5 @@ add_executable(auth _client/client.cpp
         _client/welcome.h
         _client/auth.h
         _client/menu.h
+        _client/leaderboard.h
 )
