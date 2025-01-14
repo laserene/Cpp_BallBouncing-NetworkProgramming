@@ -24,6 +24,10 @@ void drawText(int x, const int y, const int r, const int g, const int b, const c
 
     const int len = strlen(drawTextBuffer);
 
+    for (int i = 0; drawTextBuffer[i] != '\0'; ++i) {
+        drawTextBuffer[i] = toupper(drawTextBuffer[i]);
+    }
+
     rect.w = GLYPH_WIDTH;
     rect.h = GLYPH_HEIGHT;
     rect.y = 0;

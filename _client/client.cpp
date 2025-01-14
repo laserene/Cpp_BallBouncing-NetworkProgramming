@@ -20,6 +20,22 @@ App app;
 Stage stage;
 Screen screen = WELCOME;
 
+void handle_input(char *buffer) {
+    memset(buffer, 0, BUFFER_SIZE);
+    SDL_Event event;
+    SDL_StartTextInput();
+    bool run = true;
+    while (run) {
+        SDL_PollEvent(&event);
+        if (event.type == SDL_TEXTINPUT) {
+            std::cout<< event.text.text <<"\n";
+            if (strlen(buffer) + strlen(event.text.text) < BUFFER_SIZE) {
+                strcat(buffer, event.text.text);
+            }
+        } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) run = false;
+    }
+}
+
 void handle_communication(const int sock) {
     // Socket handler
     char buffer[BUFFER_SIZE] = {};
@@ -45,6 +61,9 @@ void handle_communication(const int sock) {
 
     SDL_Texture *box = loadTexture(BOX_TEXTURE);
     SDL_Texture *half = loadTexture(HALFBOX_TEXTURE);
+
+    char account[BUFFER_SIZE] = {};
+    char password[BUFFER_SIZE] = {};
 
     while (true) {
         FD_ZERO(&read_fds);
@@ -116,24 +135,27 @@ void handle_communication(const int sock) {
             drawText(520, 420, 0, 0, 0, ENTER_TEXT);
             drawText(800, 420, 0, 0, 0, RETURN_TEXT);
 
+            drawText(700, 220, 0, 0, 0, account);
+            drawText(700, 320, 0, 0, 0, password);
+
             SDL_Event event;
-            char account[BUFFER_SIZE] = {};
-            char password[BUFFER_SIZE] = {};
+            bool insertAccount = false;
+            bool insertPassword = false;
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_KEYDOWN) {
                     switch (event.key.keysym.sym) {
                         // Input account
                         case SDLK_KP_1:
-                            screen = WELCOME;
+                            insertAccount = true;
                             break;
                         // Input password
                         case SDLK_KP_2:
-                            screen = SIGNUP;
+                            insertPassword = true;
                             break;
                         // Logging in
                         case SDLK_KP_3:
                         case SDLK_RETURN:
-                            screen = LOGIN;
+
                             break;
                         case SDLK_KP_4:
                             screen = WELCOME;
@@ -142,6 +164,12 @@ void handle_communication(const int sock) {
                             break;
                     }
                 }
+            }
+
+            if (insertAccount) {
+                handle_input(account);
+            } else if (insertPassword) {
+                handle_input(password);
             }
         }
 
