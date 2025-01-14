@@ -14,6 +14,7 @@
 #include "client.h"
 
 #include "welcome.h"
+#include "auth.h"
 
 App app;
 Stage stage;
@@ -73,10 +74,11 @@ void handle_communication(const int sock) {
             drawStarfield();
             blit(half, 660, 200);
             blit(half, 660, 300);
+            blit(half, 660, 400);
             drawText(660, 120, 255, 255, 255, WELCOME_TEXT);
             drawText(660, 220, 0, 0, 0, OPTION_LOGIN_TEXT);
             drawText(660, 320, 0, 0, 0, OPTION_SIGNUP_TEXT);
-            drawText(660, 320, 0, 0, 0, OPTION_SIGNUP_TEXT);
+            drawText(660, 420, 0, 0, 0, OPTION_EXIT_TEXT);
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
@@ -99,8 +101,42 @@ void handle_communication(const int sock) {
         }
 
         if (screen == LOGIN) {
-            app.delegate.logic(sock, read_fds);
-            app.delegate.draw();
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(box, 680, 200);
+            blit(box, 680, 300);
+            blit(half, 520, 400);
+            blit(half, 800, 400);
+            drawText(680, 120, 255, 255, 255, LOGIN_TEXT);
+            drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
+            drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
+            drawText(520, 420, 0, 0, 0, ENTER_TEXT);
+            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_KP_1:
+                            screen = WELCOME;
+                            break;
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        case SDLK_KP_3:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_4:
+                            screen = WELCOME;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         if (screen == SIGNUP) {
