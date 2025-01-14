@@ -24,4 +24,7 @@
 #define EXPLOSION_TEXTURE "_client/gfx/star.png"
 #define FONT_TEXTURE "_client/font/font.png"
 
+#define BOX_TEXTURE "_client/interactive/box.png"
+#define HALFBOX_TEXTURE "_client/interactive/half.png"
+
 #endif //RESOURCES_H

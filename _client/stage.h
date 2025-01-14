@@ -3,5 +3,8 @@
 
 void initStage();
 void handle_server_message(const char *buffer);
-
+void doBackground();
+void doStarfield();
+void drawBackground();
+void drawStarfield();
 #endif //STAGE_H

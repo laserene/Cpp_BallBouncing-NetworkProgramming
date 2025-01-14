@@ -13,8 +13,12 @@
 #include "input.h"
 #include "client.h"
 
+#include "welcome.h"
+#include "auth.h"
+
 App app;
 Stage stage;
+Screen screen = WELCOME;
 
 void handle_communication(const int sock) {
     // Socket handler
@@ -39,6 +43,9 @@ void handle_communication(const int sock) {
     long then = SDL_GetTicks();
     float remainder = 0;
 
+    SDL_Texture *box = loadTexture(BOX_TEXTURE);
+    SDL_Texture *half = loadTexture(HALFBOX_TEXTURE);
+
     while (true) {
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
@@ -50,7 +57,6 @@ void handle_communication(const int sock) {
         }
 
         prepareScene();
-        doInput();
 
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
@@ -60,9 +66,163 @@ void handle_communication(const int sock) {
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
-        app.delegate.logic(sock, read_fds);
+        if (screen == WELCOME) {
+            doBackground();
+            doStarfield();
 
-        app.delegate.draw();
+            drawBackground();
+            drawStarfield();
+            blit(half, 660, 200);
+            blit(half, 660, 300);
+            blit(half, 660, 400);
+            drawText(660, 120, 255, 255, 255, WELCOME_TEXT);
+            drawText(660, 220, 0, 0, 0, OPTION_LOGIN_TEXT);
+            drawText(660, 320, 0, 0, 0, OPTION_SIGNUP_TEXT);
+            drawText(660, 420, 0, 0, 0, OPTION_EXIT_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_KP_1:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        case SDLK_KP_3:
+                            screen = EXIT;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (screen == LOGIN) {
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(box, 680, 200);
+            blit(box, 680, 300);
+            blit(half, 520, 400);
+            blit(half, 800, 400);
+            drawText(680, 120, 255, 255, 255, LOGIN_TEXT);
+            drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
+            drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
+            drawText(520, 420, 0, 0, 0, ENTER_TEXT);
+            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
+
+            SDL_Event event;
+            char account[BUFFER_SIZE] = {};
+            char password[BUFFER_SIZE] = {};
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                            screen = WELCOME;
+                            break;
+                        // Input password
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        // Logging in
+                        case SDLK_KP_3:
+                        case SDLK_RETURN:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_4:
+                            screen = WELCOME;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (screen == SIGNUP) {
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(box, 680, 200);
+            blit(box, 680, 300);
+            blit(half, 520, 400);
+            blit(half, 800, 400);
+            drawText(680, 120, 255, 255, 255, SIGNUP_TEXT);
+            drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
+            drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
+            drawText(520, 420, 0, 0, 0, ENTER_TEXT);
+            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_KP_1:
+                            screen = WELCOME;
+                            break;
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        case SDLK_KP_3:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_4:
+                            screen = WELCOME;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (screen == MENU) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == CHARACTER) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == BIOME) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == ROOM) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == PLAY) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == LEADERBOARD) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == EXIT) {
+            return;
+        }
 
         presentScene();
         capFrameRate(&then, &remainder);
