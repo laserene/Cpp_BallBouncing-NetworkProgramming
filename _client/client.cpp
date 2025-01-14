@@ -26,7 +26,7 @@ void handle_server_message(char *buffer, char *returning) {
     if (strncmp(buffer, "AUTH", 4) == 0) {
         sscanf(buffer + 5, "%s", returning);
         if (strcmp(returning, "LOGIN_SUCCESS") == 0) {
-            screen = WELCOME;
+            screen = CHARACTER;
         }
     }
 }
