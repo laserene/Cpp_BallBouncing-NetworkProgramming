@@ -26,8 +26,10 @@ void handle_server_message(char *buffer, char *returning) {
     if (strncmp(buffer, "AUTH", 4) == 0) {
         sscanf(buffer + 5, "%s", returning);
         if (strcmp(returning, "LOGIN_SUCCESS") == 0) {
+            memset(returning, 0, BUFFER_SIZE);
             screen = MENU;
         } else if (strcmp(returning, "REGISTRATION_SUCCESS") == 0) {
+            memset(returning, 0, BUFFER_SIZE);
             screen = LOGIN;
         }
     }
@@ -189,6 +191,7 @@ void handle_communication(const int sock) {
                         case SDLK_KP_4:
                         case SDLK_BACKSPACE:
                         case SDLK_ESCAPE:
+                            memset(returning, 0, BUFFER_SIZE);
                             screen = WELCOME;
                             break;
                         default:
