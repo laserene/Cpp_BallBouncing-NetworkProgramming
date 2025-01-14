@@ -208,9 +208,7 @@ void handle_communication(const int sock) {
         }
 
         if (screen == MENU) {
-            doInput();
-            app.delegate.logic(sock, read_fds);
-            app.delegate.draw();
+
         }
 
         if (screen == CHARACTER) {
