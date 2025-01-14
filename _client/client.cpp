@@ -15,10 +15,12 @@
 
 #include "welcome.h"
 #include "auth.h"
+#include "menu.h"
 
 App app;
 Stage stage;
-Screen screen = WELCOME;
+// Screen screen = WELCOME;
+Screen screen = MENU;
 
 char returning[BUFFER_SIZE] = {};
 
@@ -185,7 +187,6 @@ void handle_communication(const int sock) {
                                 snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
                             } else snprintf(buffer, sizeof(buffer), SEND_REGISTER, account, password);
 
-
                             send(sock, buffer, BUFFER_SIZE, 0);
                             break;
                         case SDLK_KP_4:
@@ -208,7 +209,56 @@ void handle_communication(const int sock) {
         }
 
         if (screen == MENU) {
+            doBackground();
+            doStarfield();
 
+            drawBackground();
+            drawStarfield();
+            blit(box, 600, 100);
+            blit(box, 600, 200);
+            blit(box, 600, 300);
+            blit(box, 600, 400);
+
+            drawText(720, 20, 255, 255, 255, MENU_TEXT);
+            drawText(610, 120, 0, 0, 0, OPTION_SINGLE_TEXT);
+            drawText(610, 220, 0, 0, 0, OPTION_MULTI_TEXT);
+            drawText(610, 320, 0, 0, 0, OPTION_LEADERBOARD_TEXT);
+            drawText(610, 420, 0, 0, 0, OPTION_MENU_EXIT_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                            // insertAccount = true;
+                            break;
+                        // Input password
+                        case SDLK_KP_2:
+                            // insertPassword = true;
+                            break;
+                        // Logging in
+                        case SDLK_KP_3:
+                        case SDLK_RETURN:
+                            memset(buffer, 0, BUFFER_SIZE);
+
+                            if (screen == LOGIN) {
+                                snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
+                            } else snprintf(buffer, sizeof(buffer), SEND_REGISTER, account, password);
+
+                            send(sock, buffer, BUFFER_SIZE, 0);
+                            break;
+                        case SDLK_KP_4:
+                        case SDLK_BACKSPACE:
+                        case SDLK_ESCAPE:
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = EXIT;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         if (screen == CHARACTER) {
