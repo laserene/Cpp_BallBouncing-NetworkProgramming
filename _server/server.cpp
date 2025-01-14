@@ -86,6 +86,7 @@ void *handle_client(void *arg) {
 
         std::cout << buffer << std::endl;
 
+        // Handle move message
         if (strncmp(buffer, "MOVE", 4) == 0) {
             strcpy(buffer, handle_move_message(buffer));
             send(client_sock, buffer, strlen(buffer), 0);

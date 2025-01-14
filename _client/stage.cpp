@@ -266,7 +266,7 @@ static void logic(const int sock, const fd_set &read_fds) {
             printf("Disconnected from server\n");
             exit(-1);
         }
-        handle_server_message(buffer);
+        handle_server_play_message(buffer);
     }
 
     doEnemies();
@@ -286,7 +286,7 @@ static void logic(const int sock, const fd_set &read_fds) {
     }
 }
 
-void handle_server_message(const char *buffer) {
+void handle_server_play_message(const char *buffer) {
     if (player != nullptr) {
         if (strncmp(buffer, "UPDATE", 6) == 0) {
             int u, d, l, r;

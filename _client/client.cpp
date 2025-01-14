@@ -20,6 +20,16 @@ App app;
 Stage stage;
 Screen screen = WELCOME;
 
+void handle_server_message(const char *buffer) {
+    if (strncmp(buffer, "AUTH", 4) == 0) {
+        sscanf(buffer + 5, "%s", buffer);
+
+        if (strcmp(buffer, "LOGIN_SUCCESS\n") == 0) {
+            screen = WELCOME;
+        }
+    }
+}
+
 void handle_input(char *buffer) {
     memset(buffer, 0, BUFFER_SIZE);
     SDL_Event event;
@@ -28,7 +38,7 @@ void handle_input(char *buffer) {
     while (run) {
         SDL_PollEvent(&event);
         if (event.type == SDL_TEXTINPUT) {
-            std::cout<< event.text.text <<"\n";
+            std::cout << event.text.text << "\n";
             if (strlen(buffer) + strlen(event.text.text) < BUFFER_SIZE) {
                 strcat(buffer, event.text.text);
             }
@@ -77,13 +87,13 @@ void handle_communication(const int sock) {
 
         prepareScene();
 
-        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
-                break;
-            }
-            send(sock, buffer, BUFFER_SIZE, 0);
-        }
+        // if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+        //     memset(buffer, 0, BUFFER_SIZE);
+        //     if (fgets(buffer, BUFFER_SIZE, stdin) == nullptr) {
+        //         break;
+        //     }
+        //     send(sock, buffer, BUFFER_SIZE, 0);
+        // }
 
         if (screen == WELCOME) {
             doBackground();
@@ -155,7 +165,9 @@ void handle_communication(const int sock) {
                         // Logging in
                         case SDLK_KP_3:
                         case SDLK_RETURN:
-
+                            memset(buffer, 0, BUFFER_SIZE);
+                            snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
+                            send(sock, buffer, BUFFER_SIZE, 0);
                             break;
                         case SDLK_KP_4:
                             screen = WELCOME;
@@ -250,6 +262,16 @@ void handle_communication(const int sock) {
 
         if (screen == EXIT) {
             return;
+        }
+
+        if (FD_ISSET(sock, &read_fds)) {
+            memset(buffer, 0, BUFFER_SIZE);
+            if (const ssize_t bytes_received = recv(sock, buffer, BUFFER_SIZE, 0); bytes_received <= 0) {
+                printf("Disconnected from server\n");
+                exit(-1);
+            }
+            printf(buffer);
+            handle_server_message(buffer);
         }
 
         presentScene();
