@@ -117,6 +117,51 @@ void handle_communication(const int sock) {
             drawText(800, 420, 0, 0, 0, RETURN_TEXT);
 
             SDL_Event event;
+            char account[BUFFER_SIZE] = {};
+            char password[BUFFER_SIZE] = {};
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                            screen = WELCOME;
+                            break;
+                        // Input password
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        // Logging in
+                        case SDLK_KP_3:
+                        case SDLK_RETURN:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_4:
+                            screen = WELCOME;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (screen == SIGNUP) {
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(box, 680, 200);
+            blit(box, 680, 300);
+            blit(half, 520, 400);
+            blit(half, 800, 400);
+            drawText(680, 120, 255, 255, 255, SIGNUP_TEXT);
+            drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
+            drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
+            drawText(520, 420, 0, 0, 0, ENTER_TEXT);
+            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
+
+            SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_KEYDOWN) {
                     switch (event.key.keysym.sym) {
@@ -137,12 +182,6 @@ void handle_communication(const int sock) {
                     }
                 }
             }
-        }
-
-        if (screen == SIGNUP) {
-            doInput();
-            app.delegate.logic(sock, read_fds);
-            app.delegate.draw();
         }
 
         if (screen == MENU) {
