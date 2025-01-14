@@ -20,11 +20,11 @@ App app;
 Stage stage;
 Screen screen = WELCOME;
 
-void handle_server_message(const char *buffer) {
+void handle_server_message(char *buffer) {
     if (strncmp(buffer, "AUTH", 4) == 0) {
         sscanf(buffer + 5, "%s", buffer);
+        if (strcmp(buffer, "LOGIN_SUCCESS") == 0) {
 
-        if (strcmp(buffer, "LOGIN_SUCCESS\n") == 0) {
             screen = WELCOME;
         }
     }
@@ -270,7 +270,6 @@ void handle_communication(const int sock) {
                 printf("Disconnected from server\n");
                 exit(-1);
             }
-            printf(buffer);
             handle_server_message(buffer);
         }
 
