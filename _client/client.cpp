@@ -28,7 +28,7 @@ void handle_server_message(char *buffer, char *returning) {
         if (strcmp(returning, "LOGIN_SUCCESS") == 0) {
             screen = MENU;
         } else if (strcmp(returning, "REGISTRATION_SUCCESS") == 0) {
-            screen = SIGNUP;
+            screen = LOGIN;
         }
     }
 }
