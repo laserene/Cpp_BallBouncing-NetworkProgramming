@@ -26,5 +26,6 @@
 
 #define BOX_TEXTURE "_client/interactive/box.png"
 #define HALFBOX_TEXTURE "_client/interactive/half.png"
+#define RESPONSE_TEXTURE "_client/interactive/res.png"
 
 #endif //RESOURCES_H

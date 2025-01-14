@@ -20,11 +20,12 @@ App app;
 Stage stage;
 Screen screen = WELCOME;
 
-void handle_server_message(char *buffer) {
-    if (strncmp(buffer, "AUTH", 4) == 0) {
-        sscanf(buffer + 5, "%s", buffer);
-        if (strcmp(buffer, "LOGIN_SUCCESS") == 0) {
+char returning[BUFFER_SIZE] = {};
 
+void handle_server_message(char *buffer, char *returning) {
+    if (strncmp(buffer, "AUTH", 4) == 0) {
+        sscanf(buffer + 5, "%s", returning);
+        if (strcmp(returning, "LOGIN_SUCCESS") == 0) {
             screen = WELCOME;
         }
     }
@@ -71,6 +72,7 @@ void handle_communication(const int sock) {
 
     SDL_Texture *box = loadTexture(BOX_TEXTURE);
     SDL_Texture *half = loadTexture(HALFBOX_TEXTURE);
+    SDL_Texture *res = loadTexture(RESPONSE_TEXTURE);
 
     char account[BUFFER_SIZE] = {};
     char password[BUFFER_SIZE] = {};
@@ -139,14 +141,17 @@ void handle_communication(const int sock) {
             blit(box, 680, 300);
             blit(half, 520, 400);
             blit(half, 800, 400);
+            blit(res, 1100, 100);
             drawText(680, 120, 255, 255, 255, LOGIN_TEXT);
             drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
             drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
             drawText(520, 420, 0, 0, 0, ENTER_TEXT);
             drawText(800, 420, 0, 0, 0, RETURN_TEXT);
+            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
 
             drawText(700, 220, 0, 0, 0, account);
             drawText(700, 320, 0, 0, 0, password);
+            drawText(1152, 260, 0, 0, 0, returning);
 
             SDL_Event event;
             bool insertAccount = false;
@@ -192,6 +197,7 @@ void handle_communication(const int sock) {
             drawBackground();
             drawStarfield();
             blit(box, 680, 200);
+            blit(box, 680, 300);
             blit(box, 680, 300);
             blit(half, 520, 400);
             blit(half, 800, 400);
@@ -270,7 +276,7 @@ void handle_communication(const int sock) {
                 printf("Disconnected from server\n");
                 exit(-1);
             }
-            handle_server_message(buffer);
+            handle_server_message(buffer, returning);
         }
 
         presentScene();
