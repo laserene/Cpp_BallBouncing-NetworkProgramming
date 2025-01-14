@@ -26,7 +26,9 @@ void handle_server_message(char *buffer, char *returning) {
     if (strncmp(buffer, "AUTH", 4) == 0) {
         sscanf(buffer + 5, "%s", returning);
         if (strcmp(returning, "LOGIN_SUCCESS") == 0) {
-            screen = CHARACTER;
+            screen = MENU;
+        } else if (strcmp(returning, "REGISTRATION_SUCCESS") == 0) {
+            screen = SIGNUP;
         }
     }
 }
@@ -122,6 +124,7 @@ void handle_communication(const int sock) {
                             screen = SIGNUP;
                             break;
                         case SDLK_KP_3:
+                        case SDLK_ESCAPE:
                             screen = EXIT;
                             break;
                         default:
@@ -131,7 +134,7 @@ void handle_communication(const int sock) {
             }
         }
 
-        if (screen == LOGIN) {
+        if (screen == LOGIN || screen == SIGNUP) {
             doBackground();
             doStarfield();
 
@@ -142,7 +145,11 @@ void handle_communication(const int sock) {
             blit(half, 520, 400);
             blit(half, 800, 400);
             blit(res, 1100, 100);
-            drawText(680, 120, 255, 255, 255, LOGIN_TEXT);
+            if (screen == LOGIN) {
+                drawText(680, 120, 255, 255, 255, LOGIN_TEXT);
+            } else drawText(680, 120, 255, 255, 255, SIGNUP_TEXT);
+
+
             drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
             drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
             drawText(520, 420, 0, 0, 0, ENTER_TEXT);
@@ -171,10 +178,17 @@ void handle_communication(const int sock) {
                         case SDLK_KP_3:
                         case SDLK_RETURN:
                             memset(buffer, 0, BUFFER_SIZE);
-                            snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
+
+                            if (screen == LOGIN) {
+                                snprintf(buffer, sizeof(buffer), SEND_LOGIN, account, password);
+                            } else snprintf(buffer, sizeof(buffer), SEND_REGISTER, account, password);
+
+
                             send(sock, buffer, BUFFER_SIZE, 0);
                             break;
                         case SDLK_KP_4:
+                        case SDLK_BACKSPACE:
+                        case SDLK_ESCAPE:
                             screen = WELCOME;
                             break;
                         default:
@@ -187,46 +201,6 @@ void handle_communication(const int sock) {
                 handle_input(account);
             } else if (insertPassword) {
                 handle_input(password);
-            }
-        }
-
-        if (screen == SIGNUP) {
-            doBackground();
-            doStarfield();
-
-            drawBackground();
-            drawStarfield();
-            blit(box, 680, 200);
-            blit(box, 680, 300);
-            blit(box, 680, 300);
-            blit(half, 520, 400);
-            blit(half, 800, 400);
-            drawText(680, 120, 255, 255, 255, SIGNUP_TEXT);
-            drawText(460, 220, 255, 255, 255, ACCOUNT_TEXT);
-            drawText(460, 320, 255, 255, 255, PASSWORD_TEXT);
-            drawText(520, 420, 0, 0, 0, ENTER_TEXT);
-            drawText(800, 420, 0, 0, 0, RETURN_TEXT);
-
-            SDL_Event event;
-            while (SDL_PollEvent(&event)) {
-                if (event.type == SDL_KEYDOWN) {
-                    switch (event.key.keysym.sym) {
-                        case SDLK_KP_1:
-                            screen = WELCOME;
-                            break;
-                        case SDLK_KP_2:
-                            screen = SIGNUP;
-                            break;
-                        case SDLK_KP_3:
-                            screen = LOGIN;
-                            break;
-                        case SDLK_KP_4:
-                            screen = WELCOME;
-                            break;
-                        default:
-                            break;
-                    }
-                }
             }
         }
 
