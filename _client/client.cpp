@@ -15,6 +15,7 @@
 
 App app;
 Stage stage;
+Screen screen = WELCOME;
 
 void handle_communication(const int sock) {
     // Socket handler
@@ -50,7 +51,6 @@ void handle_communication(const int sock) {
         }
 
         prepareScene();
-        doInput();
 
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
             memset(buffer, 0, BUFFER_SIZE);
@@ -60,9 +60,57 @@ void handle_communication(const int sock) {
             send(sock, buffer, BUFFER_SIZE, 0);
         }
 
-        app.delegate.logic(sock, read_fds);
+        if (screen == WELCOME) {
 
-        app.delegate.draw();
+        }
+
+        if (screen == LOGIN) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == SIGNUP) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == MENU) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == CHARACTER) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == BIOME) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == ROOM) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == PLAY) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
+
+        if (screen == HIGHSCORE) {
+            doInput();
+            app.delegate.logic(sock, read_fds);
+            app.delegate.draw();
+        }
 
         presentScene();
         capFrameRate(&then, &remainder);

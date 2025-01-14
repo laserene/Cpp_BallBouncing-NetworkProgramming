@@ -77,4 +77,6 @@ typedef struct {
     int speed;
 } Star;
 
+enum Screen { WELCOME, LOGIN, SIGNUP, MENU, CHARACTER, BIOME, ROOM, PLAY, HIGHSCORE };
+
 #endif //STRUCTS_H
