@@ -37,4 +37,5 @@ add_executable(auth _client/client.cpp
         _client/helper.h
         _client/buff.h
         _client/debuff.h
+        _client/welcome.h
 )

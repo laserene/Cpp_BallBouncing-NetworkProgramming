@@ -13,6 +13,8 @@
 #include "input.h"
 #include "client.h"
 
+#include "welcome.h"
+
 App app;
 Stage stage;
 Screen screen = WELCOME;
@@ -40,6 +42,9 @@ void handle_communication(const int sock) {
     long then = SDL_GetTicks();
     float remainder = 0;
 
+    SDL_Texture *box = loadTexture(BOX_TEXTURE);
+    SDL_Texture *half = loadTexture(HALFBOX_TEXTURE);
+
     while (true) {
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
@@ -61,11 +66,39 @@ void handle_communication(const int sock) {
         }
 
         if (screen == WELCOME) {
+            doBackground();
+            doStarfield();
 
+            drawBackground();
+            drawStarfield();
+            blit(half, 660, 200);
+            blit(half, 660, 300);
+            drawText(660, 120, 255, 255, 255, WELCOME_TEXT);
+            drawText(660, 220, 0, 0, 0, OPTION_LOGIN_TEXT);
+            drawText(660, 320, 0, 0, 0, OPTION_SIGNUP_TEXT);
+            drawText(660, 320, 0, 0, 0, OPTION_SIGNUP_TEXT);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_KP_1:
+                            screen = LOGIN;
+                            break;
+                        case SDLK_KP_2:
+                            screen = SIGNUP;
+                            break;
+                        case SDLK_KP_3:
+                            screen = EXIT;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         if (screen == LOGIN) {
-            doInput();
             app.delegate.logic(sock, read_fds);
             app.delegate.draw();
         }
@@ -106,10 +139,14 @@ void handle_communication(const int sock) {
             app.delegate.draw();
         }
 
-        if (screen == HIGHSCORE) {
+        if (screen == LEADERBOARD) {
             doInput();
             app.delegate.logic(sock, read_fds);
             app.delegate.draw();
+        }
+
+        if (screen == EXIT) {
+            return;
         }
 
         presentScene();

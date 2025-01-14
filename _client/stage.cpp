@@ -29,10 +29,6 @@ static void doEnemies();
 
 static void doBullets();
 
-static void doBackground();
-
-static void doStarfield();
-
 static void doExplosions();
 
 static void addExplosions(int x, int y, int num);
@@ -64,10 +60,6 @@ static void resetStage();
 static void drawExplosions();
 
 static void drawPointsPods();
-
-static void drawBackground();
-
-static void drawStarfield();
 
 static void drawDebris();
 
@@ -635,13 +627,13 @@ static void clipPlayer() {
     }
 }
 
-static void doBackground() {
+void doBackground() {
     if (--backgroundX < -SCREEN_WIDTH) {
         backgroundX = 0;
     }
 }
 
-static void doStarfield() {
+void doStarfield() {
     for (auto &star: stars) {
         star.x -= star.speed;
 
@@ -871,7 +863,7 @@ static void draw() {
     drawHud();
 }
 
-static void drawBackground() {
+void drawBackground() {
     SDL_Rect dest;
 
     for (int x = backgroundX; x < SCREEN_WIDTH; x += SCREEN_WIDTH) {
@@ -884,7 +876,7 @@ static void drawBackground() {
     }
 }
 
-static void drawStarfield() {
+void drawStarfield() {
     for (auto &star: stars) {
         const int c = 32 * star.speed;
 
