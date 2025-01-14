@@ -4,7 +4,8 @@
 #define PLAYER_TEXTURE "_client/gfx/clothier.png"
 #define BULLET_TEXTURE "_client/gfx/abigail.png"
 
-#define BACKGROUND_TEXTURE "_client/map/hallow.png"
+// #define BACKGROUND_TEXTURE "_client/map/hallow.png"
+#define BACKGROUND_TEXTURE "_client/map/rusty.png"
 #define ENEMY_TEXTURE "_client/gfx/enemy.png"
 #define ENEMY_BULLET_TEXTURE "_client/gfx/enemy_bomb.png"
 
