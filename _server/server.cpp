@@ -39,6 +39,11 @@ void *handle_client(void *arg) {
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
             sscanf(buffer + 9, "%s %s", username, password);
+            if (strlen(username) == 0 || strlen(password) == 0) {
+                send(client_sock, REPLY_USER_CREDENTIALS_NOT_BLANK, strlen(REPLY_USER_CREDENTIALS_NOT_BLANK), 0);
+                continue;
+            }
+
             if (check_existing_user(username, password, &client_id) != 0) {
                 send(client_sock, REPLY_USER_EXISTED, strlen(REPLY_USER_EXISTED), 0);
                 continue;
