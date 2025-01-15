@@ -5,6 +5,8 @@
 inline auto SEND_LOGIN = "LOGIN %s %s\n";
 inline auto SEND_REGISTER = "REGISTER %s %s\n";
 inline auto SEND_MOVE = "MOVE %d %d %d %d\n";
+inline auto SEND_LEADERBOARD_GET = "LEADERBOARD GET\n";
+inline auto SEND_LEADERBOARD_UPDATE = "LEADERBOARD UPDATE %s %d %d\n";
 
 // SERVER MESSAGES
 inline auto SERVER_UPDATE = "UPDATE %d %d %d %d\n";

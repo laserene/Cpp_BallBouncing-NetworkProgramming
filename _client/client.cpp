@@ -35,6 +35,9 @@ void handle_server_message(char *buffer, char *returning) {
             memset(returning, 0, BUFFER_SIZE);
             screen = LOGIN;
         }
+    } else if (strncmp(buffer, "LEADERBOARD RETURN", 18) == 0) {
+        int mode, score;
+        sscanf(buffer + 19, "%s %d %d", buffer, &mode, &score);
     }
 }
 
@@ -296,6 +299,12 @@ void handle_communication(const int sock) {
             drawText(560, 90, 255, 255, 255, SNOW_TEXT);
             drawText(900, 90, 255, 255, 255, RUSTY_TEXT);
             drawText(1200, 90, 255, 255, 255, SPACE_TEXT);
+
+            // Retrieve leaderboard from server and save to a file.
+            // Then read the file and render the data
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_LEADERBOARD_GET);
+            send(sock, buffer, strlen(buffer), 0);
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {

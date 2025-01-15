@@ -23,7 +23,7 @@ void *handle_client(void *arg) {
         if (const ssize_t byteRecv = recv(client_sock, buffer, BUFFER_SIZE, 0); byteRecv <= 0) {
             // Close client socket
             pthread_mutex_lock(&mutex);
-            for (int & client_socket : client_sockets) {
+            for (int &client_socket: client_sockets) {
                 if (client_socket == client_sock) {
                     client_socket = 0;
                     break;
@@ -77,7 +77,7 @@ void *handle_client(void *arg) {
         if (const ssize_t byteRecv = recv(client_sock, buffer, BUFFER_SIZE, 0); byteRecv <= 0) {
             // Close client socket
             pthread_mutex_lock(&mutex);
-            for (int & client_socket : client_sockets) {
+            for (int &client_socket: client_sockets) {
                 if (client_socket == client_sock) {
                     client_socket = 0;
                     break;
@@ -95,6 +95,18 @@ void *handle_client(void *arg) {
         if (strncmp(buffer, "MOVE", 4) == 0) {
             strcpy(buffer, handle_move_message(buffer));
             send(client_sock, buffer, strlen(buffer), 0);
+        }
+
+        // Handle leaderboard message
+        if (strncmp(buffer, "LEADERBOARD", 11) == 0) {
+            sscanf(buffer + 12, "%s", buffer);
+
+            // Handle get
+            if (strncmp(buffer, "GET", 3) == 0) {
+
+            }
+
+            // Handle update
         }
     }
 

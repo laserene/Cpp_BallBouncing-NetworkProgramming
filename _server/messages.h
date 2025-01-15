@@ -3,7 +3,7 @@
 
 // CLIENT MESSAGES
 inline auto CLIENT_MOVE = "MOVE %d %d %d %d\n";
-
+inline auto CLIENT_GET_LEADERBOARD = "LEADERBOARD GET\n";
 
 // REPLY MESSAGES
 inline auto REPLY_SERVER_FULL = "SERVER FULL\n";
@@ -17,5 +17,7 @@ inline auto REPLY_REGISTRATION_SUCCEED = "AUTH REGISTRATION_SUCCESS\n";
 inline auto REPLY_LOGIN_SUCCEED = "AUTH LOGIN_SUCCESS\n";
 
 inline auto REPLY_CLIENT_UPDATE = "UPDATE %d %d %d %d\n";
+
+inline auto REPLY_GET_LEADERBOARD = "LEADERBOARD RETURN %s %d %d\n";
 
 #endif //MESSAGES_H

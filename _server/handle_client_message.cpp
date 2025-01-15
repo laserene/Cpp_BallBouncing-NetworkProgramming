@@ -1,4 +1,5 @@
 #include "cstdio"
+#include "cstring"
 
 #include "handle_client_message.h"
 #include "messages.h"
