@@ -1,4 +1,4 @@
-#include "cstdio"
+#include "iostream"
 #include "cstdlib"
 #include "cstring"
 #include "unistd.h"
@@ -34,6 +34,8 @@ void *handleClient(void *clientSocketPtr) {
             pthread_mutex_unlock(&clientMutex);
             break;
         }
+
+        std::cout << "CMD: " << buffer << std::endl;
 
         // Receive REGISTER, LOGIN messages
         if (strncmp(buffer, "REGISTER", 8) == 0) {

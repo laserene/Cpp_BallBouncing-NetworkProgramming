@@ -26,7 +26,7 @@ struct Debris {
 
 typedef struct {
     // Passsing sock and read_fds to handle server messages
-    void (*logic)(int sock);
+    void (*logic)(int sock, const char *username);
 
     void (*draw)();
 } Delegate;

@@ -11,7 +11,7 @@
 extern App app;
 extern Stage stage;
 
-static void logic(int sock);
+static void logic(int sock, const char *username);
 
 static void draw();
 
@@ -21,7 +21,7 @@ static void initStarfield();
 
 static void fireBullet();
 
-static void doPlayer(int sock);
+static void doPlayer();
 
 static void doFighters();
 
@@ -253,10 +253,10 @@ static void initStarfield() {
     }
 }
 
-static void logic(const int sock) {
+static void logic(const int sock, const char *username) {
     doBackground();
     doStarfield();
-    doPlayer(sock);
+    doPlayer();
     doEnemies();
     doFighters();
     doBullets();
@@ -268,12 +268,18 @@ static void logic(const int sock) {
     doDebuff();
     clipPlayer();
 
+    if (player != nullptr) {
+        char buffer[BUFFER_SIZE] = {};
+        snprintf(buffer, sizeof(buffer), SEND_POSITION, username, player->x, player->y);
+        send(sock, buffer, BUFFER_SIZE, 0);
+    }
+
     if (player == nullptr && --stageResetTimer <= 0) {
         resetStage();
     }
 }
 
-static void doPlayer(const int sock) {
+static void doPlayer() {
     if (player != nullptr) {
         player->dx = player->dy = 0;
 
@@ -281,29 +287,20 @@ static void doPlayer(const int sock) {
             player->reload--;
         }
 
-        char buffer[BUFFER_SIZE] = {};
         if (app.keyboard[SDL_SCANCODE_UP]) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 1, 0, 0, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
+            player->dy -= 4;
         }
 
         if (app.keyboard[SDL_SCANCODE_DOWN]) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 1, 0, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
+            player->dy += 4;
         }
 
         if (app.keyboard[SDL_SCANCODE_LEFT]) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 1, 0);
-            send(sock, buffer, BUFFER_SIZE, 0);
+            player->dx -= 4;
         }
 
         if (app.keyboard[SDL_SCANCODE_RIGHT]) {
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_MOVE, 0, 0, 0, 1);
-            send(sock, buffer, strlen(buffer), 0);
+            player->dx += 4;
         }
 
         if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {

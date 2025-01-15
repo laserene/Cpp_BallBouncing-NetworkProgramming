@@ -24,6 +24,7 @@ Screen screen = WELCOME;
 
 char returning[BUFFER_SIZE] = {};
 bool disconnected = false;
+inline pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void handle_server_message(char *buffer, char *returning) {
     if (strncmp(buffer, "AUTH", 4) == 0) {
@@ -38,22 +39,6 @@ void handle_server_message(char *buffer, char *returning) {
     } else if (strncmp(buffer, "LEADERBOARD RETURN", 18) == 0) {
         int mode, score;
         sscanf(buffer + 19, "%s %d %d", buffer, &mode, &score);
-    } else if (strncmp(buffer, "UPDATE", 6) == 0) {
-        if (player != nullptr) {
-            if (strncmp(buffer, "UPDATE", 6) == 0) {
-                int u, d, l, r;
-                sscanf(buffer, SERVER_UPDATE, &u, &d, &l, &r);
-                player->dy += u;
-                player->dy += d;
-                player->dx += l;
-                player->dx += r;
-
-                player->x += player->dx;
-                player->y += player->dy;
-            } else {
-                std::cout << buffer << std::endl;
-            }
-        }
     }
 }
 
@@ -299,26 +284,17 @@ int main(const int argc, char *argv[]) {
         }
 
         if (screen == CHARACTER) {
-            doInput();
-            app.delegate.logic(clientSocket);
-            app.delegate.draw();
         }
 
         if (screen == BIOME) {
-            doInput();
-            app.delegate.logic(clientSocket);
-            app.delegate.draw();
         }
 
         if (screen == ROOM) {
-            doInput();
-            app.delegate.logic(clientSocket);
-            app.delegate.draw();
         }
 
         if (screen == PLAY) {
             doInput();
-            app.delegate.logic(clientSocket);
+            app.delegate.logic(clientSocket, account);
             app.delegate.draw();
         }
 
