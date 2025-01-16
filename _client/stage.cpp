@@ -144,7 +144,6 @@ static SDL_Texture *darkTexture;
 static SDL_Texture *chillTexture;
 
 static int enemySpawnTimer;
-static int stageResetTimer;
 static int backgroundX;
 static int highscore;
 
@@ -233,7 +232,6 @@ static void resetStage() {
 
     stage.score = 0;
     enemySpawnTimer = 0;
-    stageResetTimer = FPS * 4;
 }
 
 static void initPlayer() {
@@ -280,9 +278,8 @@ static void logic(const int sock, const char *username) {
         send(sock, buffer, BUFFER_SIZE, 0);
     }
 
-    if (player == nullptr && --stageResetTimer <= 0) {
+    if (player == nullptr) {
         screen = POSTGAME;
-        resetStage();
     }
 }
 
