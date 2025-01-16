@@ -10,6 +10,7 @@
 
 extern App app;
 extern Stage stage;
+extern Screen screen;
 
 static void logic(int sock, const char *username);
 
@@ -275,6 +276,7 @@ static void logic(const int sock, const char *username) {
     }
 
     if (player == nullptr && --stageResetTimer <= 0) {
+        screen = POSTGAME;
         resetStage();
     }
 }

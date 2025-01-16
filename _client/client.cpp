@@ -296,6 +296,9 @@ int main(const int argc, char *argv[]) {
             doInput();
             app.delegate.logic(clientSocket, account);
             app.delegate.draw();
+            std::cout << clientSocket << std::endl;
+            strcpy(buffer, "hmmmmm ");
+            send(clientSocket, buffer, BUFFER_SIZE, 0);
         }
 
         if (screen == LEADERBOARD) {
@@ -340,6 +343,52 @@ int main(const int argc, char *argv[]) {
 
         if (screen == EXIT) {
             break;
+        }
+
+        if (screen == POSTGAME) {
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(half, 0, 10);
+            blit(box, 1200, 10);
+
+            drawText(720, 20, 255, 255, 255, LEADERBOARD_TEXT);
+            drawText(30, 30, 0, 0, 0, OPTION_RETURN_TEXT);
+            drawText(1300, 30, 0, 0, 0, "CONTINUE PLAYING");
+
+            drawText(220, 90, 255, 255, 255, HALLOW_TEXT);
+            drawText(560, 90, 255, 255, 255, SNOW_TEXT);
+            drawText(900, 90, 255, 255, 255, RUSTY_TEXT);
+            drawText(1200, 90, 255, 255, 255, SPACE_TEXT);
+
+            // Retrieve leaderboard from server and save to a file.
+            // Then read the file and render the data
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_LEADERBOARD_GET);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                        case SDLK_BACKSPACE:
+                        case SDLK_ESCAPE:
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = MENU;
+                            break;
+                        case SDLK_KP_2:
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = PLAY;
+                        break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         presentScene();

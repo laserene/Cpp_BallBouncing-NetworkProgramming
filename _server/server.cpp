@@ -35,7 +35,7 @@ void *handleClient(void *clientSocketPtr) {
             break;
         }
 
-        std::cout << "CMD: " << buffer << std::endl;
+        std::cout << "hmmm " << buffer << std::endl;
 
         // Receive REGISTER, LOGIN messages
         if (strncmp(buffer, "REGISTER", 8) == 0) {
@@ -73,9 +73,9 @@ void *handleClient(void *clientSocketPtr) {
         }
 
         // Handle MOVE message
-        if (strncmp(buffer, "MOVE", 4) == 0) {
-            strcpy(buffer, handle_move_message(buffer));
-            send(clientSocket, buffer, strlen(buffer), 0);
+        if (strncmp(buffer, "POSITION", 8) == 0) {
+            // strcpy(buffer, handle_move_message(buffer));
+            // send(clientSocket, buffer, strlen(buffer), 0);
         }
 
         // Handle LEADERBOARD message
@@ -89,8 +89,6 @@ void *handleClient(void *clientSocketPtr) {
         //     // Handle update
         // }
     }
-
-
 
     return nullptr;
 }
