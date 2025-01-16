@@ -418,7 +418,7 @@ int main(const int argc, char *argv[]) {
 
             drawText(720, 20, 255, 255, 255, LEADERBOARD_TEXT);
             drawText(30, 30, 0, 0, 0, OPTION_RETURN_TEXT);
-            drawText(1300, 30, 0, 0, 0, "CONTINUE PLAYING");
+            drawText(1200, 30, 0, 0, 0, "CONTINUE PLAYING");
 
             drawText(220, 90, 255, 255, 255, HALLOW_TEXT);
             drawText(560, 90, 255, 255, 255, SNOW_TEXT);

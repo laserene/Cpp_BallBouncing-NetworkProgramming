@@ -11,8 +11,9 @@
 extern App app;
 extern Stage stage;
 extern Screen screen;
-Stat stat;
+
 extern Biome biome;
+Stat stat;
 BiomeStat biomeStat;
 
 static void logic(int sock, const char *username);
@@ -157,7 +158,7 @@ void initStage() {
     app.delegate.draw = draw;
 
     memset(&stage, 0, sizeof(Stage));
-    memset(&stat, 0, sizeof(Stat));
+    stat = Stat();
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
@@ -223,7 +224,7 @@ void resetStage() {
     }
 
     memset(&stage, 0, sizeof(Stage));
-    memset(&stat, 0, sizeof(Stat));
+    stat = Stat();
     memset(&biomeStat, 0, sizeof(BiomeStat));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
@@ -293,6 +294,9 @@ static void initStarfield() {
 static void logic(const int sock, const char *username) {
     doBackground();
     doStarfield();
+
+    doBuff();
+    doDebuff();
     doPlayer();
     doEnemies();
     doFighters();
@@ -301,8 +305,6 @@ static void logic(const int sock, const char *username) {
     doDebris();
     doPointsPods();
     spawnEnemies();
-    doBuff();
-    doDebuff();
     clipPlayer();
 
     if (player != nullptr) {
@@ -416,29 +418,16 @@ static void doPointsPods() {
             e->health = 0;
 
             if (const int pod_id = e->pod_id; pod_id > 0) {
+                const int pod_position_in_list = pod_id - 1;
                 switch (pod_id) {
                     case WIDESPREAD:
                     case SPEEDUP:
                     case LUCK:
-                        for (auto &i: stage.buffList) {
-                            const int buff_id = i.id;
-
-                            // Duplicated buff --> refresh buff
-                            if (pod_id == buff_id) {
-                                i.health = 15 * FPS;
-                                break;
-                            }
-
-                            /*
-                             * Non-duplicated existing buff
-                             * Check if duplicated buff --> refresh buff. Then break the loop since buff consumed
-                             */
-                            if (buff_id != 0) continue;
-
-                            i.id = pod_id;
-                            i.texture = e->texture;
-                            i.health = 15 * FPS;
-                            break;
+                        // Refresh live time
+                        stage.buffList[pod_position_in_list].health = 15 * FPS;
+                        if (stage.buffList[pod_position_in_list].id == 0) {
+                            stage.buffList[pod_position_in_list].id = pod_id;
+                            stage.buffList[pod_position_in_list].texture = e->texture;
                         }
                         break;
                     case FROZEN:
@@ -610,8 +599,9 @@ static int bulletHitFighter(Entity *b) {
                 addDebris(e);
                 if (e->side == SIDE_ALIEN) {
                     // Generte buff, debuff
-                    if (getRandomNumber(1, 100) <= BUFF_RATE + stat.player_delta_luck) addPointsPod(
-                        e->x + e->w / 2, e->y + e->h / 2);
+                    if (getRandomNumber(1, 100) <= BUFF_RATE + stat.player_delta_luck)
+                        addPointsPod(
+                            e->x + e->w / 2, e->y + e->h / 2);
                     else if (getRandomNumber(1, 100) <= DEBUFF_RATE + 50 - stat.player_delta_luck) addDebuff();
                 }
             }
@@ -634,7 +624,7 @@ static void fireAlienBullet(Entity *e) {
 
     bullet->x = e->x;
     bullet->y = e->y;
-    bullet->health = 1 + stat.enemy_delta_bullet;
+    bullet->health = 1 + stat.enemy_delta_bullet + biomeStat.enemy_bullet_delta;
     bullet->texture = enemyBulletTexture;
     bullet->side = SIDE_ALIEN;
     SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
@@ -659,7 +649,7 @@ static void spawnEnemies() {
 
         enemy->x = SCREEN_WIDTH;
         enemy->y = rand() % SCREEN_HEIGHT;
-        enemy->health = 1;
+        enemy->health = 1 + biomeStat.enemy_health;
         enemy->texture = enemyTexture;
         enemy->side = SIDE_ALIEN;
         SDL_QueryTexture(enemy->texture, nullptr, nullptr, &enemy->w, &enemy->h);

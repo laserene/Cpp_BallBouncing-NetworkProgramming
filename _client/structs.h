@@ -65,7 +65,6 @@ typedef struct {
     Explosion explosionHead, *explosionTail;
     Debris debrisHead, *debrisTail;
     Entity pointsHead, *pointsTail;
-    // there are 3 instant-consuming buffs: FROZEN, HEART & REFRESH
     Pod buffList[NUM_BUFF - 3];
     Pod debuffList[NUM_DEBUFF];
     int score;
