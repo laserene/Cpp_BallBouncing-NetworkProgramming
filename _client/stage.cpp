@@ -11,6 +11,7 @@
 extern App app;
 extern Stage stage;
 extern Screen screen;
+Stat stat;
 
 static void logic(int sock, const char *username);
 
@@ -31,6 +32,8 @@ static void doEnemies();
 static void doBullets();
 
 static void doExplosions();
+
+static void fireEnforcedBullet();
 
 static void addExplosions(int x, int y, int num);
 
@@ -159,6 +162,7 @@ void initStage() {
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
+    stat.alpha = 255;
 
     playerTexture = loadTexture(PLAYER_TEXTURE);
     bulletTexture = loadTexture(BULLET_TEXTURE);
@@ -222,6 +226,7 @@ static void resetStage() {
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
+    stat.alpha = 255;
 
     initPlayer();
     initStarfield();
@@ -290,24 +295,28 @@ static void doPlayer() {
         }
 
         if (app.keyboard[SDL_SCANCODE_UP]) {
-            player->dy -= 4;
+            player->dy -= 4 + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_DOWN]) {
-            player->dy += 4;
+            player->dy += 4 + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LEFT]) {
-            player->dx -= 4;
+            player->dx -= 4 + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_RIGHT]) {
-            player->dx += 4;
+            player->dx += 4 + stat.player_delta;
         }
 
         if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
-            fireBullet();
+            if (!stat.enforced_bullet) fireBullet();
+            else fireEnforcedBullet();
         }
+
+        player->x += player->dx + stat.player_delta_dx;
+        player->y += player->dy + stat.player_delta_dx;
     }
 }
 
@@ -475,11 +484,66 @@ static void fireBullet() {
     bullet->y = player->y;
     bullet->dx = PLAYER_BULLET_SPEED;
     bullet->side = SIDE_PLAYER;
-    bullet->health = 1;
+    bullet->health = 1 + stat.player_delta_bullet;;
     bullet->texture = bulletTexture;
     SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
 
     bullet->y += (player->h / 2) - (bullet->h / 2);
+
+    player->reload = 8;
+}
+
+static void fireEnforcedBullet() {
+    auto *ball1 = static_cast<Entity *>(malloc(sizeof(Entity)));
+    auto *ball2 = static_cast<Entity *>(malloc(sizeof(Entity)));
+    auto *ball3 = static_cast<Entity *>(malloc(sizeof(Entity)));
+
+    memset(ball1, 0, sizeof(Entity));
+    memset(ball2, 0, sizeof(Entity));
+    memset(ball3, 0, sizeof(Entity));
+
+    stage.bulletTail->next = ball1;
+    stage.bulletTail = ball1;
+    stage.bulletTail->next = ball2;
+    stage.bulletTail = ball2;
+    stage.bulletTail->next = ball3;
+    stage.bulletTail = ball3;
+
+    ball1->side = SIDE_PLAYER;
+    ball2->side = SIDE_PLAYER;
+    ball3->side = SIDE_PLAYER;
+
+    ball1->x = player->x;
+    ball2->x = player->x;
+    ball3->x = player->x;
+
+    ball1->y = player->y;
+    ball2->y = player->y;
+    ball3->y = player->y;
+
+    ball1->dx = PLAYER_BULLET_SPEED;
+    ball1->dy = PLAYER_BULLET_SPEED;
+
+    ball2->dx = PLAYER_BULLET_SPEED;
+
+    ball3->dx = PLAYER_BULLET_SPEED;
+    ball3->dy = -PLAYER_BULLET_SPEED;
+
+    ball1->health = 1 + stat.player_delta_bullet;
+    ball2->health = 1 + stat.player_delta_bullet;
+    ball3->health = 1 + stat.player_delta_bullet;
+
+    ball1->texture = bulletTexture;
+    ball2->texture = bulletTexture;
+    ball3->texture = bulletTexture;
+
+    SDL_QueryTexture(ball1->texture, nullptr, nullptr, &ball1->w, &ball1->h);
+    SDL_QueryTexture(ball2->texture, nullptr, nullptr, &ball2->w, &ball2->h);
+    SDL_QueryTexture(ball3->texture, nullptr, nullptr, &ball3->w, &ball3->h);
+
+    ball1->y += (player->h / 2) - (ball1->h / 2);
+    ball2->y += (player->h / 2) - (ball2->h / 2);
+    ball3->y += (player->h / 2) - (ball3->h / 2);
 
     player->reload = 8;
 }
@@ -516,8 +580,8 @@ static int bulletHitFighter(Entity *b) {
                 addDebris(e);
                 if (e->side == SIDE_ALIEN) {
                     // Generte buff, debuff
-                    if (getRandomNumber(1, 100) <= BUFF_RATE) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
-                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE) addDebuff();
+                    if (getRandomNumber(1, 100) <= BUFF_RATE + stat.player_delta_luck) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE - stat.player_delta_luck) addDebuff();
                 }
             }
 
@@ -539,7 +603,7 @@ static void fireAlienBullet(Entity *e) {
 
     bullet->x = e->x;
     bullet->y = e->y;
-    bullet->health = 1;
+    bullet->health = 1 + stat.enemy_delta_bullet;
     bullet->texture = enemyBulletTexture;
     bullet->side = SIDE_ALIEN;
     SDL_QueryTexture(bullet->texture, nullptr, nullptr, &bullet->w, &bullet->h);
@@ -842,6 +906,11 @@ void drawBackground() {
 
         SDL_RenderCopy(app.renderer, background, nullptr, &dest);
     }
+
+    SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_BLEND); // Enable transparency
+    SDL_SetRenderDrawColor(app.renderer, 0, 0, 0, 255 - stat.alpha); // 50% darkness
+    SDL_Rect darkOverlay = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}; // Full screen
+    SDL_RenderFillRect(app.renderer, &darkOverlay);
 }
 
 void drawStarfield() {
@@ -868,7 +937,14 @@ static void drawPointsPods() {
 
 static void drawBullets() {
     for (const Entity *b = stage.bulletHead.next; b != nullptr; b = b->next) {
-        blit(b->texture, b->x, b->y);
+        if (b->side == SIDE_ALIEN) {
+            SDL_SetTextureAlphaMod(b->texture, stat.alpha);
+        }
+        SDL_Rect dest;
+        dest.x = b->x;
+        dest.y = b->y;
+        SDL_QueryTexture(b->texture, nullptr, nullptr, &dest.w, &dest.h);
+        SDL_RenderCopy(app.renderer, b->texture, nullptr, &dest);
     }
 }
 
@@ -971,6 +1047,7 @@ static void doBuff() {
 }
 
 static void apply_widespread() {
+    stat.enforced_bullet = 1;
 }
 
 static void apply_freeze() {
@@ -981,9 +1058,11 @@ static void apply_freeze() {
 }
 
 void apply_speedup() {
+    stat.player_delta = -1;
 }
 
 void apply_luck() {
+    stat.player_delta_luck = 5;
 }
 
 static void apply_heart() {
@@ -991,15 +1070,19 @@ static void apply_heart() {
 }
 
 static void apply_refresh() {
+    reset_debuff();
 }
 
 void reset_widespread() {
+    stat.enforced_bullet = 0;
 }
 
 void reset_speedup() {
+    if (stat.player_delta > 0) stat.player_delta = 0;
 }
 
 void reset_luck() {
+    stat.player_delta_luck = 0;
 }
 
 // Debuff
@@ -1046,24 +1129,32 @@ void doDebuff() {
 
 
 void apply_bleeding() {
+    stat.enemy_delta_bullet = 1;
 }
 
 void apply_weak() {
+    stat.player_delta_bullet = -0.5;
 }
 
 void apply_confusion() {
+    stat.player_delta_dx = getRandomNumber(-4, 4);
+    stat.player_delta_dy = getRandomNumber(-4, 4);;
 }
 
 void apply_dark() {
+    stat.alpha = 80;
 }
 
 void apply_chill() {
+    stat.player_delta = 2;
 }
 
 void reset_bleeding() {
+    stat.enemy_delta_bullet = 0;
 }
 
 void reset_weak() {
+    stat.player_delta_bullet = 0;
 }
 
 void reset_confusion() {
