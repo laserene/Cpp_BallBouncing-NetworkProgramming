@@ -21,7 +21,7 @@
 App app;
 Stage stage;
 // Screen screen = WELCOME;
-Screen screen = MENU;
+Screen screen = BIOME;
 
 char returning[BUFFER_SIZE] = {};
 
@@ -128,12 +128,15 @@ void handle_communication(const int sock) {
                 if (event.type == SDL_KEYDOWN) {
                     switch (event.key.keysym.sym) {
                         case SDLK_KP_1:
+                        case SDLK_1:
                             screen = LOGIN;
                             break;
                         case SDLK_KP_2:
+                        case SDLK_2:
                             screen = SIGNUP;
                             break;
                         case SDLK_KP_3:
+                        case SDLK_3:
                         case SDLK_ESCAPE:
                             screen = EXIT;
                             break;
@@ -178,14 +181,17 @@ void handle_communication(const int sock) {
                     switch (event.key.keysym.sym) {
                         // Input account
                         case SDLK_KP_1:
+                        case SDLK_1:
                             insertAccount = true;
                             break;
                         // Input password
                         case SDLK_KP_2:
+                        case SDLK_2:
                             insertPassword = true;
                             break;
                         // Logging in
                         case SDLK_KP_3:
+                        case SDLK_3:
                         case SDLK_RETURN:
                             memset(buffer, 0, BUFFER_SIZE);
 
@@ -237,13 +243,18 @@ void handle_communication(const int sock) {
                     switch (event.key.keysym.sym) {
                         // Input account
                         case SDLK_KP_1:
+                        case SDLK_1:
                             // insertAccount = true;
+                            screen = PLAY;
                             break;
                         // Input password
                         case SDLK_KP_2:
+                        case SDLK_2:
                             // insertPassword = true;
+                            screen = PLAY;
                             break;
                         case SDLK_KP_3:
+                        case SDLK_3:
                             memset(returning, 0, BUFFER_SIZE);
                             screen = LEADERBOARD;
                             break;
@@ -267,9 +278,44 @@ void handle_communication(const int sock) {
         }
 
         if (screen == BIOME) {
-            doInput();
-            app.delegate.logic(sock, read_fds);
-            app.delegate.draw();
+            doBackground();
+            doStarfield();
+
+            drawBackground();
+            drawStarfield();
+            blit(half, 0, 10);
+
+            drawText(720, 20, 255, 255, 255, LEADERBOARD_TEXT);
+            drawText(30, 30, 0, 0, 0, OPTION_RETURN_TEXT);
+
+            drawText(220, 90, 255, 255, 255, "1. HALLOW");
+            drawText(560, 90, 255, 255, 255, "2. SNOW");
+            drawText(900, 90, 255, 255, 255, "3. RUSTY");
+            drawText(1200, 90, 255, 255, 255, "4. SPACE");
+
+            // Retrieve leaderboard from server and save to a file.
+            // Then read the file and render the data
+            memset(buffer, 0, BUFFER_SIZE);
+            snprintf(buffer, sizeof(buffer), SEND_LEADERBOARD_GET);
+            send(sock, buffer, strlen(buffer), 0);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                        // Input account
+                        case SDLK_KP_1:
+                        case SDLK_1:
+                        case SDLK_BACKSPACE:
+                        case SDLK_ESCAPE:
+                            memset(returning, 0, BUFFER_SIZE);
+                            screen = MENU;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         if (screen == ROOM) {
@@ -312,6 +358,7 @@ void handle_communication(const int sock) {
                     switch (event.key.keysym.sym) {
                         // Input account
                         case SDLK_KP_1:
+                        case SDLK_1:
                         case SDLK_BACKSPACE:
                         case SDLK_ESCAPE:
                             memset(returning, 0, BUFFER_SIZE);
