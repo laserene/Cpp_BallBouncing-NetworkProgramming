@@ -1158,12 +1158,16 @@ void reset_weak() {
 }
 
 void reset_confusion() {
+    stat.player_delta_dx = 0;
+    stat.player_delta_dy = 0;
 }
 
 void reset_dark() {
+    stat.alpha = 255;
 }
 
 void reset_chill() {
+    stat.player_delta = 0;
 }
 
 void reset_debuff() {
@@ -1172,5 +1176,5 @@ void reset_debuff() {
     reset_weak();
     reset_confusion();
     reset_dark();
-    // if (stat.player_delta > 0) reset_chilled();
+    if (stat.player_delta > 0) reset_chill();
 }
