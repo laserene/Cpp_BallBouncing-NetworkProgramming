@@ -11,4 +11,6 @@ void doBackground();
 void doStarfield();
 void drawBackground();
 void drawStarfield();
+void resetStage();
+
 #endif //STAGE_H

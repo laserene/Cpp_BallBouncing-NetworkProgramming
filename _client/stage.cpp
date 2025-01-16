@@ -61,8 +61,6 @@ static void addDebuff();
 
 static void clipPlayer();
 
-static void resetStage();
-
 static void drawExplosions();
 
 static void drawPointsPods();
@@ -167,41 +165,13 @@ void initStage() {
     stat.alpha = 255;
 
     memset(&biomeStat, 0, sizeof(BiomeStat));
-    if(biome == HALLOW){
-        strcpy(biomeStat.background, "_client/map/hallow.png");
-        strcpy(biomeStat.enemy, "_client/gfx/queen.png");
-        strcpy(biomeStat.enemy_bullet, "_client/gfx/havenly.png");
-        biomeStat.enemy_health = 4;
-        biomeStat.enemy_bullet_delta = 1;
-    } else if(biome == RUSTY){
-        strcpy(biomeStat.background, "_client/map/rusty.png");
-        strcpy(biomeStat.enemy, "_client/gfx/vlad.png");
-        strcpy(biomeStat.enemy_bullet, "_client/gfx/bat.png");
-        biomeStat.enemy_health = 3;
-        biomeStat.enemy_bullet_delta = 1;
-    } else if(biome == SNOW){
-        strcpy(biomeStat.background, "_client/map/snow.png");
-        strcpy(biomeStat.enemy, "_client/gfx/snowman.png");
-        strcpy(biomeStat.enemy_bullet, "_client/gfx/candy.png");
-        biomeStat.enemy_health = 2;
-        biomeStat.enemy_bullet_delta = 1;
-    } else if(biome == SPACE){
-        strcpy(biomeStat.background, "_client/map/space.png");
-        strcpy(biomeStat.enemy, "_client/gfx/enemy.png");
-        strcpy(biomeStat.enemy_bullet, "_client/gfx/enemy_bomb.png");
-    }
 
     playerTexture = loadTexture(PLAYER_TEXTURE);
     bulletTexture = loadTexture(BULLET_TEXTURE);
 
-    enemyTexture = loadTexture(biomeStat.enemy);
-    enemyBulletTexture = loadTexture(biomeStat.enemy_bullet);
-    background = loadTexture(biomeStat.background);
-
-    // enemyTexture = loadTexture(ENEMY_TEXTURE);
-    // enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
-    //
-    // background = loadTexture(BACKGROUND_TEXTURE);
+    enemyTexture = loadTexture(ENEMY_TEXTURE);
+    enemyBulletTexture = loadTexture(ENEMY_BULLET_TEXTURE);
+    background = loadTexture(BACKGROUND_TEXTURE);
     explosionTexture = loadTexture(EXPLOSION_TEXTURE);
 
     // Invariable texture to biomes
@@ -221,7 +191,7 @@ void initStage() {
     resetStage();
 }
 
-static void resetStage() {
+void resetStage() {
     while (stage.fighterHead.next) {
         Entity *e = stage.fighterHead.next;
         stage.fighterHead.next = e->next;
@@ -254,12 +224,41 @@ static void resetStage() {
 
     memset(&stage, 0, sizeof(Stage));
     memset(&stat, 0, sizeof(Stat));
+    memset(&biomeStat, 0, sizeof(BiomeStat));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
     stage.pointsTail = &stage.pointsHead;
     stat.alpha = 255;
+
+    if (biome == HALLOW) {
+        strcpy(biomeStat.background, "_client/map/hallow.png");
+        strcpy(biomeStat.enemy, "_client/gfx/queen.png");
+        strcpy(biomeStat.enemy_bullet, "_client/gfx/havenly.png");
+        biomeStat.enemy_health = 4;
+        biomeStat.enemy_bullet_delta = 1;
+    } else if (biome == RUSTY) {
+        strcpy(biomeStat.background, "_client/map/rusty.png");
+        strcpy(biomeStat.enemy, "_client/gfx/vlad.png");
+        strcpy(biomeStat.enemy_bullet, "_client/gfx/bat.png");
+        biomeStat.enemy_health = 3;
+        biomeStat.enemy_bullet_delta = 1;
+    } else if (biome == SNOW) {
+        strcpy(biomeStat.background, "_client/map/snow.png");
+        strcpy(biomeStat.enemy, "_client/gfx/snowman.png");
+        strcpy(biomeStat.enemy_bullet, "_client/gfx/candy.png");
+        biomeStat.enemy_health = 2;
+        biomeStat.enemy_bullet_delta = 1;
+    } else if (biome == SPACE) {
+        strcpy(biomeStat.background, "_client/map/space.jpg");
+        strcpy(biomeStat.enemy, "_client/gfx/enemy.png");
+        strcpy(biomeStat.enemy_bullet, "_client/gfx/enemy_bomb.png");
+    }
+
+    enemyTexture = loadTexture(biomeStat.enemy);
+    enemyBulletTexture = loadTexture(biomeStat.enemy_bullet);
+    background = loadTexture(biomeStat.background);
 
     initPlayer();
     initStarfield();
@@ -611,8 +610,9 @@ static int bulletHitFighter(Entity *b) {
                 addDebris(e);
                 if (e->side == SIDE_ALIEN) {
                     // Generte buff, debuff
-                    if (getRandomNumber(1, 100) <= BUFF_RATE + stat.player_delta_luck) addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
-                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE - stat.player_delta_luck) addDebuff();
+                    if (getRandomNumber(1, 100) <= BUFF_RATE + stat.player_delta_luck) addPointsPod(
+                        e->x + e->w / 2, e->y + e->h / 2);
+                    else if (getRandomNumber(1, 100) <= DEBUFF_RATE + 50 - stat.player_delta_luck) addDebuff();
                 }
             }
 

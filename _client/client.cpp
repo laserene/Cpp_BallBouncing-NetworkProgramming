@@ -296,19 +296,19 @@ int main(const int argc, char *argv[]) {
             drawStarfield();
             blit(half, 0, 10);
 
-            drawText(720, 20, 255, 255, 255, LEADERBOARD_TEXT);
+            drawText(720, 20, 255, 255, 255, "BIOME");
             drawText(30, 30, 0, 0, 0, OPTION_RETURN_TEXT);
 
-            drawText(220, 90, 255, 255, 255, HALLOW_TEXT);
-            drawText(560, 90, 255, 255, 255, SNOW_TEXT);
-            drawText(900, 90, 255, 255, 255, RUSTY_TEXT);
-            drawText(1200, 90, 255, 255, 255, SPACE_TEXT);
+            drawText(220, 90, 255, 255, 255, "1. HALLOW");
+            drawText(560, 90, 255, 255, 255, "2. SNOW");
+            drawText(900, 90, 255, 255, 255, "3. RUSTY");
+            drawText(1200, 90, 255, 255, 255, "4. SPACE");
 
             // Retrieve leaderboard from server and save to a file.
             // Then read the file and render the data
-            memset(buffer, 0, BUFFER_SIZE);
-            snprintf(buffer, sizeof(buffer), SEND_LEADERBOARD_GET);
-            send(clientSocket, buffer, strlen(buffer), 0);
+            // memset(buffer, 0, BUFFER_SIZE);
+            // snprintf(buffer, sizeof(buffer), SEND_LEADERBOARD_GET);
+            // send(clientSocket, buffer, strlen(buffer), 0);
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
@@ -316,29 +316,35 @@ int main(const int argc, char *argv[]) {
                     switch (event.key.keysym.sym) {
                         // Input account
                         case SDLK_1:
+                        case SDLK_KP_1:
                             biome = HALLOW;
                             screen = PLAY;
+                            resetStage();
                             break;
                         case SDLK_KP_2:
                         case SDLK_2:
                             biome = SNOW;
                             screen = PLAY;
+                            initStage();
+                            resetStage();
                             break;
                         case SDLK_KP_3:
                         case SDLK_3:
                             biome = RUSTY;
                             screen = PLAY;
+                            resetStage();
                             break;
                         case SDLK_KP_4:
                         case SDLK_4:
                             biome = SPACE;
                             screen = PLAY;
+                            resetStage();
                             break;
                         case SDLK_BACKSPACE:
                         case SDLK_ESCAPE:
-
                             memset(returning, 0, BUFFER_SIZE);
                             screen = MENU;
+                            resetStage();
                             break;
                         default:
                             break;
@@ -354,7 +360,7 @@ int main(const int argc, char *argv[]) {
             doInput();
             app.delegate.logic(clientSocket, account);
             app.delegate.draw();
-            send(clientSocket, buffer, BUFFER_SIZE, 0);
+            // send(clientSocket, buffer, BUFFER_SIZE, 0);
         }
 
         if (screen == LEADERBOARD) {
