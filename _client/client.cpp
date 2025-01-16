@@ -295,8 +295,6 @@ int main(const int argc, char *argv[]) {
             doInput();
             app.delegate.logic(clientSocket, account);
             app.delegate.draw();
-            std::cout << clientSocket << std::endl;
-            strcpy(buffer, "hmmmmm ");
             send(clientSocket, buffer, BUFFER_SIZE, 0);
         }
 
