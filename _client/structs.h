@@ -79,4 +79,14 @@ typedef struct {
 
 enum Screen { WELCOME, LOGIN, SIGNUP, MENU, CHARACTER, BIOME, ROOM, PLAY, LEADERBOARD, EXIT };
 
+enum Biome { HALLOW, SNOW, SPACE, RUSTY};
+
+typedef struct{
+    char background[1024];
+    char enemy[1024];
+    char enemy_bullet[1024];
+    int enemy_health;
+    int enemy_bullet_delta;
+} BiomeStat;
+
 #endif //STRUCTS_H

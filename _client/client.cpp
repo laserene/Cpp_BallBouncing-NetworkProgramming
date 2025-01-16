@@ -22,6 +22,7 @@ App app;
 Stage stage;
 // Screen screen = WELCOME;
 Screen screen = BIOME;
+Biome biome = RUSTY;
 
 char returning[BUFFER_SIZE] = {};
 
@@ -245,7 +246,7 @@ void handle_communication(const int sock) {
                         case SDLK_KP_1:
                         case SDLK_1:
                             // insertAccount = true;
-                            screen = PLAY;
+                            screen = BIOME;
                             break;
                         // Input password
                         case SDLK_KP_2:
@@ -306,6 +307,24 @@ void handle_communication(const int sock) {
                         // Input account
                         case SDLK_KP_1:
                         case SDLK_1:
+                            biome = HALLOW;
+                            screen = PLAY;
+                            break;
+                        case SDLK_KP_2:
+                        case SDLK_2:
+                            biome = SNOW;
+                            screen = PLAY;
+                            break;
+                        case SDLK_KP_3:
+                        case SDLK_3:
+                            biome = RUSTY;
+                            screen = PLAY;
+                            break;
+                        case SDLK_KP_4:
+                        case SDLK_4:
+                            biome = SPACE;
+                            screen = PLAY;
+                            break;
                         case SDLK_BACKSPACE:
                         case SDLK_ESCAPE:
                             memset(returning, 0, BUFFER_SIZE);
