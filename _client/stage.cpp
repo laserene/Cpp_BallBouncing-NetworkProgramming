@@ -157,6 +157,7 @@ void initStage() {
     app.delegate.draw = draw;
 
     memset(&stage, 0, sizeof(Stage));
+    memset(&stat, 0, sizeof(Stat));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
@@ -220,6 +221,7 @@ static void resetStage() {
     }
 
     memset(&stage, 0, sizeof(Stage));
+    memset(&stat, 0, sizeof(Stat));
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
@@ -444,7 +446,7 @@ static void doPointsPods() {
                 }
             }
 
-            stage.score++;
+            if (rand() % 100 <= 20) stage.score++;
             highscore = MAX(stage.score, highscore);
         }
 
