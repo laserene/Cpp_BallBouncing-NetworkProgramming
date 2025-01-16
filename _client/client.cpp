@@ -50,7 +50,6 @@ void handle_input(char *buffer) {
     while (run) {
         SDL_PollEvent(&event);
         if (event.type == SDL_TEXTINPUT) {
-            std::cout << event.text.text << "\n";
             if (strlen(buffer) + strlen(event.text.text) < BUFFER_SIZE) {
                 strcat(buffer, event.text.text);
             }

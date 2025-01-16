@@ -35,8 +35,6 @@ void *handleClient(void *clientSocketPtr) {
             break;
         }
 
-        std::cout << "hmmm " << buffer << std::endl;
-
         // Receive REGISTER, LOGIN messages
         if (strncmp(buffer, "REGISTER", 8) == 0) {
             // sscanf the string following REGISTER
